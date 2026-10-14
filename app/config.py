@@ -104,7 +104,14 @@ class Settings:
 
 def load_settings() -> Settings:
     smtp_user = _env_str("SMTP_USER", "") or ""
-    base_url = (_env_str("BASE_URL", "http://127.0.0.1:8000") or "").rstrip("/")
+    # BASE_URL drives email links and the secure-cookie flag. On Render we can
+    # infer it from the service's public URL so a fresh deploy is correct before
+    # any environment variables are filled in.
+    base_url = (
+        _env_str("BASE_URL")
+        or _env_str("RENDER_EXTERNAL_URL")
+        or "http://127.0.0.1:8000"
+    ).rstrip("/")
     port = _env_int("SMTP_PORT", 587)
     return Settings(
         secret_key=_load_or_create_secret(),

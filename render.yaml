@@ -1,0 +1,29 @@
+# Render Blueprint for MotorScope.
+# In the Render dashboard: New + -> Blueprint, pick this repo, and Render reads this file.
+# See README / .env.example for the values you add afterwards in the dashboard.
+
+services:
+  - type: web
+    name: motorscope
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips "*"
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.14.3
+      # Signs session cookies. Generated once by Render and kept stable across deploys.
+      - key: SECRET_KEY
+        generateValue: true
+      - key: MAIL_FROM_NAME
+        value: MotorScope
+      # BASE_URL is detected automatically from Render's RENDER_EXTERNAL_URL.
+      # Set it explicitly only if you add a custom domain.
+      # Add SMTP_* and GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET in the dashboard
+      # once you have them (see .env.example).
+    disk:
+      name: motorscope-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
