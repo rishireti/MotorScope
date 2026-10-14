@@ -1,0 +1,39 @@
+{#
+  Application header for signed-in pages.
+
+  Deliberately a different shape from _public_header.html: an app bar with product
+  navigation rather than marketing links, so the signed-in experience reads as a
+  separate application.
+#}
+<header class="app-bar">
+  <div class="app-bar__inner">
+    <a class="brand brand--app" href="/dashboard">
+      <svg class="brand-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M2 12h4l2.5-6 4 13 2.5-7H22" stroke="currentColor" stroke-width="1.7"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>MotorScope</span>
+    </a>
+
+    {#
+      Only real pages carry `app_page` and can be marked current. Trends is a section of
+      the overview and Learn leaves the application shell for the public pages, so neither
+      has a page state to highlight.
+    #}
+    <nav class="app-nav" aria-label="Application">
+      <a class="app-nav__link" href="/dashboard"
+         {% if app_page == 'overview' %}aria-current="page"{% endif %}>Overview</a>
+      <a class="app-nav__link" href="/mobility"
+         {% if app_page == 'mobility' %}aria-current="page"{% endif %}>My Mobility</a>
+      <a class="app-nav__link" href="/dashboard#trend">Trends</a>
+      <a class="app-nav__link" href="/movement">Learn</a>
+      <a class="app-nav__link" href="/account"
+         {% if app_page == 'account' %}aria-current="page"{% endif %}>Account</a>
+    </nav>
+
+    <form method="post" action="/logout" class="app-bar__signout">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn--ghost btn--inline" type="submit">Sign Out</button>
+    </form>
+  </div>
+</header>

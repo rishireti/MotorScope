@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Email confirmed' if ok else 'Link problem' }}{% endblock %}
+{% block content %}
+<section class="panel">
+  <div class="icon-badge" aria-hidden="true">{{ '&#10003;' if ok else '&#9888;' }}</div>
+  <h1>{{ headline }}</h1>
+  <p class="subtitle">{{ detail }}</p>
+
+  {% if ok %}
+    <a class="btn" href="/login">Sign in</a>
+  {% else %}
+    <a class="btn" href="/forgot-password">Request a new email</a>
+    <p class="form-footer"><a href="/login">Back to sign in</a></p>
+  {% endif %}
+</section>
+{% endblock %}

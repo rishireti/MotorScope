@@ -1,0 +1,199 @@
+{% set shell = 'app' %}
+{% extends "base.html" %}
+{% block title %}My Mobility{% endblock %}
+{% block body_class %}shell-app{% endblock %}
+{% block content %}
+<div class="app-shell">
+<section class="panel panel--wide">
+  <p class="eyebrow">Import</p>
+  <h1>Pull your data from the Health app</h1>
+  <p class="subtitle">
+    Rather than typing numbers in one by one, export everything from Health on your iPhone
+    and upload the ZIP here. MotorScope reads only the mobility measurements and saves them
+    as readings you can compare over time.
+  </p>
+
+  {% if errors.import %}
+    <div class="alert alert--error">{{ errors.import }}</div>
+  {% endif %}
+
+  <h2 class="steps-title">How to export your data</h2>
+  <ol class="steps">
+    <li>Open the Health app on your iPhone.</li>
+    <li>Tap your profile picture in the top-right corner.</li>
+    <li>Scroll down and select Export All Health Data.</li>
+    <li>Tap Export and choose a location or app to save the ZIP file.</li>
+  </ol>
+  <p class="section-note">
+    Health takes a while to build the export and may ask you to wait while it prepares. You
+    will end up with a file called <span class="mono">apple_health_export.zip</span>. Choose
+    that file below, not any file inside it.
+  </p>
+
+  <form
+    method="post"
+    action="/mobility/import"
+    enctype="multipart/form-data"
+    class="upload-form"
+  >
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field">
+      <label for="export_file">Health export ZIP</label>
+      <input id="export_file" name="export_file" type="file" accept=".zip,application/zip" required>
+      <p class="metric-input__range">
+        Only mobility samples are read. Everything else in the export is skipped, and the
+        ZIP is deleted as soon as it has been read.
+      </p>
+    </div>
+    <button type="submit" class="btn btn--primary">Import mobility data</button>
+  </form>
+
+  <p class="disclaimer">
+    A Health export contains your complete medical history, so treat the ZIP as a private
+    file. MotorScope reads it on this computer only, keeps nothing but the readings you save,
+    and never sends it anywhere.
+  </p>
+</section>
+
+{% if import_summaries %}
+<section class="panel panel--wide">
+  <div class="alert alert--success">
+    Read {{ import_summaries|length }} measurement{{ '' if import_summaries|length == 1 else 's' }}
+    from your export, filed under {{ import_recorded_on }}.
+  </div>
+  <h2>What was found</h2>
+  <p class="section-note">
+    Each value is the average of that metric's samples on its most recent day in the export.
+    Metrics last recorded on an earlier day keep that day. Check the date and the numbers
+    below, adjust anything you like, then save.
+  </p>
+  <table class="history-table">
+    <thead>
+      <tr>
+        <th scope="col">Measurement</th>
+        <th scope="col">Imported value</th>
+        <th scope="col">Averaged from</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for summary in import_summaries %}
+        <tr>
+          <th scope="row">{{ metrics_by_key[summary.key].label }}</th>
+          <td class="mono">
+            {{ '%.4g'|format(summary.value) }}
+            {{ metrics_by_key[summary.key].unit }}
+          </td>
+          <td class="mono">{{ summary.recorded_on }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+<section class="panel panel--wide panel--mobility">
+  <p class="eyebrow">Mobility metrics</p>
+  <h1>Log your measurements</h1>
+  <p class="subtitle">
+    Enter whatever readings you have from the Health app. Blank fields are skipped, so you
+    can record only the measurements you actually took.
+  </p>
+
+  {% if saved %}
+    <div class="alert alert--success">Reading saved.</div>
+  {% endif %}
+  {% if errors.form %}
+    <div class="alert alert--error">{{ errors.form }}</div>
+  {% endif %}
+
+  <div class="callout">
+    <h2>Where these numbers come from</h2>
+    <p>
+      Open the <strong>Health app</strong>, tap <strong>Browse</strong>, then choose
+      <strong>Mobility</strong>. Metrics marked <em>Apple&nbsp;Watch</em> below are
+      captured by your watch during a walk, run, or stair workout. The rest are estimated
+      by your iPhone while it is carried in a pocket or held at your waist, walking on flat
+      ground.
+    </p>
+  </div>
+
+  <form method="post" action="/mobility" class="stacked-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="field">
+      <label for="recorded_on">Date measured</label>
+      <input id="recorded_on" name="recorded_on" type="date" value="{{ import_recorded_on or today }}">
+    </div>
+
+    <div class="metric-inputs">
+      {% for metric in metrics %}
+        <fieldset class="metric-input">
+          <legend>{{ metric.label }}</legend>
+          <p class="metric-input__unit">{{ metric.unit }}</p>
+          <p class="metric-input__desc">{{ metric.description }}</p>
+          {% if metric.watch_only %}
+            <p class="tag tag--watch">Apple Watch</p>
+          {% else %}
+            <p class="tag tag--phone">iPhone</p>
+          {% endif %}
+          <input
+            type="text"
+            inputmode="decimal"
+            name="{{ metric.key }}"
+            value="{{ values[metric.key] if values[metric.key] is defined else '' }}"
+            aria-describedby="{{ metric.key }}-hint"
+          >
+          <p id="{{ metric.key }}-hint" class="metric-input__range">
+            Expected range {{ '%.1f'|format(metric.low) }}&ndash;{{ '%.1f'|format(metric.high) }} {{ metric.unit }}
+            {% if metric.higher_is_better %}
+              &middot; higher is better
+            {% else %}
+              &middot; lower is better
+            {% endif %}
+          </p>
+          {% if errors[metric.key] is defined %}
+            <p class="field-error">{{ errors[metric.key] }}</p>
+          {% endif %}
+        </fieldset>
+      {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn--primary">Save reading</button>
+  </form>
+</section>
+
+{% if history %}
+<section class="panel panel--wide">
+  <p class="eyebrow">History</p>
+  <h2>Past readings</h2>
+  <table class="history-table">
+    <thead>
+      <tr>
+        <th scope="col">Date</th>
+        <th scope="col">Metrics measured</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in history %}
+        <tr>
+          <td class="mono">{{ row['recorded_on'] }}</td>
+          <td>
+            {% set filled = [] %}
+            {% for metric in metrics %}
+              {% if row[metric.key] is not none %}{% set _ = filled.append(metric.label) %}{% endif %}
+            {% endfor %}
+            {{ filled|length }}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+
+<p class="disclaimer">
+  MotorScope is a tracking tool, not a medical device. It does not diagnose, rule out,
+  or monitor any condition. Discuss any changes you notice with a qualified clinician.
+</p>
+</div>
+{% endblock %}

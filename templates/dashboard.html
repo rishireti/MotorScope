@@ -1,0 +1,218 @@
+{% set shell = 'app' %}
+{% extends "base.html" %}
+{% from "_macros.html" import metric_card, primary_button %}
+{% block title %}Dashboard{% endblock %}
+{% block body_class %}shell-app{% endblock %}
+{% block content %}
+<div class="app-shell">
+  {#
+    Printed only. Gives a paper copy a document header so it is identifiable when handed
+    to a healthcare professional, and states the print date rather than leaving it blank.
+  #}
+  <header class="print-only">
+    <p class="print-only__title">MotorScope Mobility Report</p>
+    <p class="print-only__meta">
+      {{ user.display_name }} &middot; {{ user.email }} &middot; {{ latest.recorded_on or 'no readings' }} &middot;
+      {{ reading_count }} reading{{ '' if reading_count == 1 else 's' }} recorded
+    </p>
+  </header>
+
+  <header class="app-page-head">
+    <div>
+      <p class="eyebrow">Mobility overview</p>
+      <h1 class="app-page-head__title">Good {{ greeting() }}, {{ user.display_name }}</h1>
+      <p class="app-page-head__sub">
+        Your movement, built from the readings you have recorded.
+      </p>
+    </div>
+    <a class="btn btn--small" href="/mobility">Record a reading</a>
+  </header>
+
+  {% if not verified %}
+    <div class="alert alert--info">
+      Confirm your email address to fully activate your account. You can still record
+      measurements in the meantime.
+    </div>
+  {% endif %}
+
+  {# ------------------------------------------------- your mobility trend #}
+  <section class="panel" id="trend" aria-labelledby="trend-heading">
+    <div class="panel__head">
+      <div>
+        <p class="score-label">Your Mobility Trend</p>
+        <h2 class="panel__title" id="trend-heading">
+          {% if score_chart %}{{ score_trend }}{% else %}No readings recorded yet{% endif %}
+        </h2>
+      </div>
+      {% if score_chart %}
+        <span class="status-pill status-pill--ok">
+          <span class="status-dot"></span>{{ reading_count }} reading{{ '' if reading_count == 1 else 's' }}
+        </span>
+      {% endif %}
+    </div>
+
+    {% if score_chart %}
+      <figure class="chart">
+        <figcaption class="chart__caption">
+          <span class="chart__title">Mobility trend over time</span>
+          <span class="chart__range">{{ score_chart.x_first }}{% if score_chart.point_count > 1 %} to {{ score_chart.x_last }}{% endif %}</span>
+        </figcaption>
+
+        <svg
+          class="chart__svg"
+          viewBox="0 0 {{ score_chart.width }} {{ score_chart.height }}"
+          role="img"
+          aria-label="Line chart of your mobility trend from {{ score_chart.x_first }} to {{ score_chart.x_last }}"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          {% for line in score_chart.grid %}
+            <line class="chart__gridline" x1="{{ score_chart.pad_left }}" y1="{{ line.y }}"
+                  x2="{{ score_chart.pad_left + score_chart.inner_w }}" y2="{{ line.y }}"></line>
+            <text class="chart__axis-label" x="{{ score_chart.pad_left - 8 }}" y="{{ line.y + 4 }}"
+                  text-anchor="end">{{ line.label }}</text>
+          {% endfor %}
+
+          <polygon class="chart__area" points="{{ score_chart.area_points }}"></polygon>
+
+          {% if not score_chart.single %}
+            <polyline class="chart__line" points="{{ score_chart.line_points }}"></polyline>
+          {% endif %}
+
+          {% for dot in score_chart.dots %}
+            <circle class="chart__dot" cx="{{ dot.cx }}" cy="{{ dot.cy }}" r="3.5">
+              <title>{{ dot.title }}</title>
+            </circle>
+          {% endfor %}
+
+          <text class="chart__axis-label" x="{{ score_chart.pad_left }}" y="{{ score_chart.height - 8 }}"
+                text-anchor="start">{{ score_chart.x_first }}</text>
+          {% if not score_chart.single %}
+            <text class="chart__axis-label" x="{{ score_chart.pad_left + score_chart.inner_w }}" y="{{ score_chart.height - 8 }}"
+                  text-anchor="end">{{ score_chart.x_last }}</text>
+          {% endif %}
+        </svg>
+
+        <p class="chart__note">
+          Each point is one saved reading. Gaps in the line mean no readings were recorded in
+          between, not that nothing changed.
+        </p>
+
+        <p class="chart__cta">
+          Go to <a href="/mobility"><strong>My Mobility</strong></a> to record readings and
+          extend this chart.
+        </p>
+      </figure>
+
+      <div class="trend-actions">
+        <a class="btn btn--small" href="/mobility">Record a reading</a>
+        <a class="text-link" href="/how-it-works">How these measurements work</a>
+      </div>
+    {% else %}
+      <div class="mobility-prompt">
+        <p class="mobility-prompt__text">
+          Go to <strong>My Mobility</strong> to record your first measurement and start
+          building a baseline you can compare against.
+        </p>
+        <a class="btn btn--primary" href="/mobility">Go to My Mobility</a>
+        <p class="mobility-prompt__hint">
+          Open the Health app, tap <strong>Browse</strong>, choose
+          <strong>Mobility</strong>, then copy your figures across &mdash; or import an Apple
+          Health export. Your chart builds itself as you save each reading.
+        </p>
+      </div>
+    {% endif %}
+  </section>
+
+  {# ------------------------------------------------------- metric tiles #}
+  {% if latest_metric_cards %}
+    <section class="panel" aria-labelledby="metrics-heading">
+      <div class="panel__head">
+        <div>
+          <h2 class="panel__title" id="metrics-heading">Latest readings</h2>
+          <p class="panel__note">
+            Measured {{ latest.recorded_on }}. Changes compare your most recent reading with
+            the one before it.
+          </p>
+        </div>
+      </div>
+
+      <div class="tile-grid">
+        {% for card in latest_metric_cards %}
+          {{ metric_card(card.label, card.value, card.unit, card.change_note, card.direction) }}
+        {% endfor %}
+      </div>
+
+      <p class="panel__note panel__note--quiet">
+        Movement values are reported as they were measured. Arrow direction shows whether a
+        number rose or fell &mdash; it does not mean better or worse.
+      </p>
+    </section>
+  {% else %}
+    <section class="panel" aria-labelledby="metrics-heading">
+      <h2 class="panel__title" id="metrics-heading">Latest readings</h2>
+      <p class="panel__note">
+        No individual metrics yet. Once you save a reading, each measurement appears here with
+        its own value and change from the previous reading.
+      </p>
+    </section>
+  {% endif %}
+
+  {# -------------------------------------------- prepare for a doctor visit #}
+  <section class="panel panel--callout" aria-labelledby="conversation-heading">
+    <div class="callout callout--quiet">
+      <div class="callout__body">
+        <h2 class="panel__title" id="conversation-heading">Notice a meaningful change?</h2>
+        <p class="callout__text">
+          Bring your recent measurements and trend to a healthcare professional. MotorScope
+          records measurements and trends only &mdash; it does not diagnose, predict, or treat
+          any medical condition.
+        </p>
+      </div>
+      <a class="btn btn--primary btn--small" href="/movement#when-to-talk">Prepare for a doctor visit</a>
+    </div>
+  </section>
+
+  {# --------------------------------------------------------- account facts #}
+  <section class="panel" aria-labelledby="account-heading">
+    <h2 class="panel__title" id="account-heading">Account</h2>
+    <dl class="dash-grid">
+      <div class="stat">
+        <dt>Account email</dt>
+        <dd>{{ user.email }}</dd>
+      </div>
+      <div class="stat">
+        <dt>Email status</dt>
+        <dd>
+          {% if verified %}
+            <span class="status-pill status-pill--ok"><span class="status-dot"></span>Verified</span>
+          {% else %}
+            <span class="status-pill status-pill--warn"><span class="status-dot"></span>Unverified</span>
+          {% endif %}
+        </dd>
+      </div>
+      <div class="stat">
+        <dt>Member since</dt>
+        <dd class="mono">{{ created_at[:10] }}</dd>
+      </div>
+      <div class="stat">
+        <dt>Last sign in</dt>
+        <dd class="mono">{{ (last_login_at or 'first session')[:19] }}</dd>
+      </div>
+    </dl>
+
+    {% if not smtp_ready %}
+      <div class="alert alert--info">
+        Email delivery is not configured, so you will not be able to reset your password yet.
+        Add your SMTP details to <code>.env</code>.
+      </div>
+    {% endif %}
+
+    <p class="panel__foot">
+      <a href="/mobility">Input measurements</a> &middot;
+      <a href="/account">Account settings</a>
+    </p>
+  </section>
+</div>
+
+{% include "_disclaimer.html" %}
+{% endblock %}

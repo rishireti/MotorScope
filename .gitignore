@@ -1,0 +1,21 @@
+.venv/
+__pycache__/
+*.pyc
+
+# Secrets and local machine data
+.env
+data/
+*.db
+*.db-wal
+*.db-shm
+*.key
+
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local run output
+server.log
+server.err.log
+preview/

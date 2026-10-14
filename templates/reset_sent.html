@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Check your email{% endblock %}
+{% block content %}
+<section class="panel">
+  <div class="icon-badge" aria-hidden="true">&#9993;</div>
+  <h1>Reset link sent</h1>
+  <p class="subtitle">
+    If <strong>{{ email }}</strong> has a MotorScope account, a password reset link
+    is on its way. It can be used once and expires in 30 minutes.
+  </p>
+
+  {% if not smtp_ready %}
+    <div class="alert alert--info">
+      SMTP is not configured, so nothing was sent. Fill in the SMTP settings in
+      <code>.env</code> and restart the server.
+    </div>
+  {% endif %}
+
+  <p class="form-footer">
+    Nothing arrived? Check the spam folder, or
+    <a href="/forgot-password">send it again</a>.
+    <br><br>
+    <a href="/login">Back to sign in</a>
+  </p>
+</section>
+{% endblock %}

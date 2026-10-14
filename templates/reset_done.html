@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Password updated{% endblock %}
+{% block content %}
+<section class="panel">
+  <div class="icon-badge" aria-hidden="true">&#10003;</div>
+  <h1>Password updated</h1>
+  <p class="subtitle">
+    The password for <strong>{{ email }}</strong> has been replaced. Sign in with
+    your new password &mdash; the old one no longer works.
+  </p>
+  <a class="btn" href="/login">Sign in</a>
+</section>
+{% endblock %}

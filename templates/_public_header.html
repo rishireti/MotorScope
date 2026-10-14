@@ -1,0 +1,27 @@
+{#
+  Public site header: marketing navigation plus account actions.
+
+  Only rendered on the logged-out public pages. The signed-in application uses
+  _app_header.html instead so the product never reads as a continuation of the site.
+#}
+<header class="site-header site-header--public">
+  <div class="site-header__inner">
+  <a class="brand" href="/">
+    <svg class="brand-mark" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M2 12h4l2.5-6 4 13 2.5-7H22" stroke="currentColor" stroke-width="1.7"
+            stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span>MotorScope</span>
+  </a>
+
+  <nav class="public-nav" aria-label="Main">
+    <a class="public-nav__link" href="/movement">Why Movement Matters</a>
+    <a class="public-nav__link" href="/how-it-works">How It Works</a>
+    <a class="public-nav__link" href="/resources">Resources</a>
+  </nav>
+
+  <div class="site-header__actions">
+    <a class="btn btn--primary btn--small" href="/dashboard">View My Mobility</a>
+  </div>
+  </div>
+</header>

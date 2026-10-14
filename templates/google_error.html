@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Google sign-in{% endblock %}
+{% block content %}
+<section class="panel">
+  <div class="icon-badge" aria-hidden="true">&#9888;</div>
+  <h1>{{ headline }}</h1>
+  {% if detail %}
+    <p class="subtitle">{{ detail }}</p>
+  {% else %}
+    <p class="subtitle">The sign-in could not be completed.</p>
+  {% endif %}
+
+  <a class="btn" href="/login">Back to sign in</a>
+  <p class="form-footer">
+    No Google account? <a href="/signup">Create one with email instead</a>
+  </p>
+</section>
+{% endblock %}

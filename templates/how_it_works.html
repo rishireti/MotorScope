@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+{% from "_macros.html" import section_header, process_step, slide_prev, slide_next %}
+{% block title %}How It Works{% endblock %}
+{% block content %}
+{#
+  The walkthrough is an arrow-driven slide deck, matching "Why Movement Matters". Without
+  JavaScript the panels stack and the page scrolls normally (see slides.js).
+#}
+<div class="slides" data-slides>
+  {{ slide_prev() }}
+
+  <div class="slides__viewport">
+    <div class="slides__track" data-slide-track>
+
+      <section class="slide slide--intro" data-slide data-label="How it works" aria-label="How MotorScope works">
+        <div class="slide__inner">
+          <p class="eyebrow">How it works</p>
+          <h1 class="slide__title">From the sensors you already carry to a baseline you can trust.</h1>
+          <p class="slide__lead">
+            MotorScope does not ask you to buy sensors or change your routine. It reads the
+            walking measurements your iPhone and Apple Watch already record, organises them,
+            and shows you how your own movement compares over time.
+          </p>
+        </div>
+      </section>
+
+      <section class="slide" data-slide data-label="The path of a reading" aria-label="The path of a reading">
+        <div class="slide__inner">
+          {{ section_header(
+            'The path of a reading',
+            intro='Every stage below runs on data that is already being collected during ordinary daily life.'
+          ) }}
+
+          <ol class="pipeline">
+            <li class="pipeline__stage">
+              <p class="pipeline__badge">1</p>
+              <h3 class="pipeline__title">iPhone and Apple Watch</h3>
+              <p class="pipeline__body">
+                While you walk, these devices estimate walking speed, step length, left-right
+                symmetry, steadiness, and step count. Nothing extra is worn and no extra effort
+                is required.
+              </p>
+            </li>
+            <li class="pipeline__stage">
+              <p class="pipeline__badge">2</p>
+              <h3 class="pipeline__title">Apple Health mobility data</h3>
+              <p class="pipeline__body">
+                Those estimates are stored in the Health app. You can import an export at any
+                time instead of copying figures across by hand.
+              </p>
+            </li>
+            <li class="pipeline__stage">
+              <p class="pipeline__badge">3</p>
+              <h3 class="pipeline__title">MotorScope</h3>
+              <p class="pipeline__body">
+                MotorScope converts the measurements into the units it uses, arranges them on
+                one timeline, and keeps each reading attached to the date it was recorded.
+              </p>
+            </li>
+            <li class="pipeline__stage">
+              <p class="pipeline__badge">4</p>
+              <h3 class="pipeline__title">Trend analysis</h3>
+              <p class="pipeline__body">
+                Readings are plotted across weeks and months, so a slow shift becomes visible as
+                a pattern instead of a single unusual day.
+              </p>
+            </li>
+            <li class="pipeline__stage">
+              <p class="pipeline__badge">5</p>
+              <h3 class="pipeline__title">Your personal mobility baseline</h3>
+              <p class="pipeline__body">
+                Your history becomes the reference point. The question changes from whether a
+                number is high or low to whether it is moving away from how you usually move.
+              </p>
+            </li>
+            <li class="pipeline__stage pipeline__stage--outcome">
+              <p class="pipeline__badge">6</p>
+              <h3 class="pipeline__title">Awareness and a doctor conversation</h3>
+              <p class="pipeline__body">
+                You decide what the pattern means. A recorded change gives you something
+                concrete to describe when you choose to raise it with a healthcare professional.
+              </p>
+            </li>
+          </ol>
+        </div>
+      </section>
+
+      <section class="slide" data-slide data-label="What each measurement means" aria-label="What each measurement means">
+        <div class="slide__inner">
+          {{ section_header(
+            'What each measurement means',
+            intro='MotorScope focuses on the measurements that describe how a walk actually happened.'
+          ) }}
+
+          <div class="feature-list">
+            <article class="feature">
+              <h3 class="feature__title">Walking speed</h3>
+              <p class="feature__body">
+                How quickly you cover ground, in metres per second. A familiar reference point,
+                because it changes with pace, terrain, and how far a walk goes.
+              </p>
+            </article>
+            <article class="feature">
+              <h3 class="feature__title">Step length</h3>
+              <p class="feature__body">
+                The distance covered by one step. Often the first thing to shift when walking
+                changes, even before pace feels different.
+              </p>
+            </article>
+            <article class="feature">
+              <h3 class="feature__title">Asymmetry</h3>
+              <p class="feature__body">
+                How differently the two sides of the body move. A percentage, with a smaller
+                value meaning the sides are more similar.
+              </p>
+            </article>
+            <article class="feature">
+              <h3 class="feature__title">Steadiness</h3>
+              <p class="feature__body">
+                How even each step is. Measured by the Apple Watch during a walk and expressed
+                as a percentage.
+              </p>
+            </article>
+            <article class="feature">
+              <h3 class="feature__title">Step count</h3>
+              <p class="feature__body">
+                The everyday total for a day, and the simplest measure for noticing whether
+                overall activity has shifted.
+              </p>
+            </article>
+            <article class="feature">
+              <h3 class="feature__title">Activity level</h3>
+              <p class="feature__body">
+                A plain-language summary of recent activity, shown as a trend rather than a
+                single day's figure.
+              </p>
+            </article>
+          </div>
+
+          <p class="band__cta">
+            <a class="text-link" href="/resources">Read the background on these measurements</a>
+          </p>
+        </div>
+      </section>
+
+      <section class="slide" data-slide data-label="Getting started" aria-label="Getting started">
+        <div class="slide__inner">
+          {{ section_header(
+            'Getting started',
+            intro='Three steps from here to a trend you can follow over time.'
+          ) }}
+
+          <div class="process process--compact">
+            {{ process_step(
+              '01',
+              'Create an account',
+              'Your account and mobility records stay on this device in the current prototype.'
+            ) }}
+            {{ process_step(
+              '02',
+              'Record a reading',
+              'Enter figures from the Health app, or import an Apple Health export to fill them in for review.'
+            ) }}
+            {{ process_step(
+              '03',
+              'Follow your trend',
+              'Come back over weeks and months to see whether your movement matches your own pattern.'
+            ) }}
+          </div>
+
+          <p class="band__cta">
+            <a class="btn btn--primary" href="/dashboard">View My Mobility</a>
+          </p>
+
+          <div class="callout callout--quiet">
+            <p class="callout__text">
+              MotorScope is a movement-awareness and tracking tool. It is not a medical device
+              and does not diagnose, treat, or predict medical conditions.
+            </p>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  {{ slide_next() }}
+
+  <div class="slides__dots" data-slide-dots role="tablist" aria-label="Sections"></div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/js/slides.js?v={{ asset_version() }}" defer></script>{% endblock %}

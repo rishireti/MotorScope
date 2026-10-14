@@ -1,0 +1,123 @@
+{% set shell = 'app' %}
+{% extends "base.html" %}
+{% block title %}Account{% endblock %}
+{% block body_class %}shell-app{% endblock %}
+{% block content %}
+<div class="app-shell">
+<section class="panel panel--wide">
+  <p class="eyebrow">Settings</p>
+  <h1>Your account</h1>
+  <p class="subtitle">This address is the only way into your MotorScope account.</p>
+
+  {% if notice %}
+    <div class="alert alert--{{ notice[0] }}" role="alert">{{ notice[1] }}</div>
+  {% endif %}
+
+  <dl class="dash-grid">
+    <div class="stat">
+      <dt>Name</dt>
+      <dd>{{ user.display_name }}</dd>
+    </div>
+    <div class="stat">
+      <dt>Email address</dt>
+      <dd>{{ user.email }}</dd>
+    </div>
+    <div class="stat">
+      <dt>Email confirmed</dt>
+      <dd>{{ 'Yes' if user.email_verified else 'Not yet' }}</dd>
+    </div>
+    <div class="stat">
+      <dt>Sign-in methods</dt>
+      <dd>
+        {% if has_password %}Password{% else %}<span class="muted-note">No password set</span>{% endif %}
+        {%- if google_linked %} &middot; Google{% endif %}
+      </dd>
+    </div>
+    <div class="stat">
+      <dt>Account created</dt>
+      <dd class="mono">{{ created_at[:19] }}</dd>
+    </div>
+    <div class="stat">
+      <dt>Last sign in</dt>
+      <dd class="mono">{{ (last_login_at or 'first session')[:19] }}</dd>
+    </div>
+    <div class="stat">
+      <dt>Mobility data</dt>
+      <dd>Not connected yet</dd>
+    </div>
+  </dl>
+
+  <a class="btn btn--ghost" href="/forgot-password">Send me a password reset</a>
+  <p class="form-footer">
+    Forgotten passwords are replaced through the emailed link &mdash; MotorScope never
+    reuses an old password and never creates a second account for the same address.
+  </p>
+</section>
+
+<section class="panel panel--wide">
+  <p class="eyebrow">Google account</p>
+  <h1 class="subhead">
+    {% if google_linked %}Google is connected{% else %}Google is not connected{% endif %}
+  </h1>
+
+  {% if google_linked %}
+    <p class="subtitle">
+      Linked on {{ google_linked_at }}. You can sign in with Google or your email and
+      password.
+    </p>
+    <form method="post" action="/auth/google/disconnect">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn--ghost" type="submit">Unlink Google</button>
+    </form>
+    {% if not has_password %}
+      <p class="hint-inline">
+        This account has no password yet. Set one with the reset link above before
+        unlinking Google, otherwise you will not be able to sign in.
+      </p>
+    {% endif %}
+  {% else %}
+    <p class="subtitle">
+      Connect Google to sign in without typing a password. MotorScope only reads your
+      name, email address, and profile picture &mdash; it cannot read your email.
+    </p>
+    {% if google_enabled %}
+      <a class="btn btn--google" href="/auth/google?next=/account">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.6 5.6 0 0 1-2.4 3.7v3h3.9c2.3-2.1 3.5-5.2 3.5-8.9z"/>
+          <path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.9-3a7.2 7.2 0 0 1-10.7-3.8h-4v3.1A12 12 0 0 0 12 24z"/>
+          <path fill="#FBBC05" d="M5.3 14.3a7.1 7.1 0 0 1 0-4.6V6.6h-4a12 12 0 0 0 0 10.8l4-3.1z"/>
+          <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1A7.2 7.2 0 0 1 12 4.8z"/>
+        </svg>
+        Connect Google account
+      </a>
+    {% else %}
+      <p class="hint-inline">
+        Google sign-in is not configured on this build. Add
+        <code>GOOGLE_CLIENT_ID</code> and <code>GOOGLE_CLIENT_SECRET</code> to
+        <code>.env</code> to enable it.
+      </p>
+    {% endif %}
+  {% endif %}
+</section>
+
+<section class="panel panel--wide">
+  <p class="eyebrow">How we handle your data</p>
+  <h1 class="subhead">Your movement data is yours</h1>
+  <div class="prose">
+    <p>
+      Movement readings collected from your devices are sensitive personal health
+      information. MotorScope stores them against your account only, and never sells or
+      shares them with advertisers.
+    </p>
+    <p>
+      When you export or share a summary with a clinician, you choose exactly what is
+      included and for how long it stays available.
+    </p>
+    <p>
+      Device permissions, export, and deletion controls will appear here once device
+      syncing is connected.
+    </p>
+  </div>
+</section>
+</div>
+{% endblock %}

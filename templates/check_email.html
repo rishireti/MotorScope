@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Check your email{% endblock %}
+{% block content %}
+<section class="panel">
+  <div class="icon-badge" aria-hidden="true">&#9993;</div>
+  <h1>Check your inbox</h1>
+  <p class="subtitle">
+    We sent a confirmation link to <strong>{{ email }}</strong>. Open it to activate
+    your account. The link works once and expires in 24 hours.
+  </p>
+
+  {% if not smtp_configured %}
+    <div class="alert alert--info">
+      SMTP is not configured yet, so no email was actually sent. Copy
+      <code>.env.example</code> to <code>.env</code> and fill in your SMTP details,
+      then restart the server.
+    </div>
+  {% endif %}
+
+  <form method="post" action="/resend-verification">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="email" value="{{ email }}">
+    <button class="btn btn--ghost" type="submit">Resend confirmation email</button>
+  </form>
+
+  <p class="form-footer">
+    Wrong address? <a href="/signup">Start over</a> &middot;
+    <a href="/login">Back to sign in</a>
+  </p>
+</section>
+{% endblock %}

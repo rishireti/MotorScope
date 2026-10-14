@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>{% block title %}{{ title }}{% endblock %} &middot; MotorScope</title>
+  {#
+    Per-page summary and share metadata. `meta_description` falls back to a product-level
+    line so a page can never render without one.
+  #}
+  {% set page_description = meta_description | default(
+    'MotorScope helps you understand changes in walking and mobility using information your iPhone and Apple Watch already collect. Not a medical device.',
+    true) %}
+  {% set page_path = request.url.path %}
+  <meta name="description" content="{{ page_description }}">
+  <meta name="theme-color" content="#f6f1e7">
+  <link rel="canonical" href="{{ base_url }}{{ page_path }}">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="MotorScope">
+  <meta property="og:title" content="{{ self.title() }} &middot; MotorScope">
+  <meta property="og:description" content="{{ page_description }}">
+  <meta property="og:url" content="{{ base_url }}{{ page_path }}">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="{{ self.title() }} &middot; MotorScope">
+  <meta name="twitter:description" content="{{ page_description }}">
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/css/style.css?v={{ asset_version() }}">
+</head>
+<body class="{% block body_class %}shell-public{% endblock %}">
+{#
+  Two shells share one document. Public pages get marketing navigation and the full
+  footer; signed-in pages get an application bar instead, so the product never reads as
+  a continuation of the marketing site. Pages opt in with `{% set shell = 'app' %}`.
+#}
+{% set main_class = 'app-main' if shell == 'app' else 'site-main' %}
+<div class="page">
+{% if shell == 'app' %}
+  {% include "_app_header.html" %}
+{% else %}
+  <a class="skip-link" href="#main">Skip to content</a>
+  {% include "_public_header.html" %}
+{% endif %}
+
+  <main class="{{ main_class }}" id="main">
+    {% block content %}{% endblock %}
+  </main>
+
+{% if shell != 'app' %}
+  {% include "_footer.html" %}
+{% endif %}
+</div>
+{% block scripts %}{% endblock %}
+</body>
+</html>

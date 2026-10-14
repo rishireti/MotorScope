@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% from "_macros.html" import section_header, resource_card %}
+{% block title %}Trusted Resources{% endblock %}
+{% block content %}
+<section class="page-hero page-hero--narrow">
+  <p class="eyebrow">Trusted health information</p>
+  <h1 class="page-hero__title">Trusted Resources</h1>
+  <p class="page-hero__lead">
+    Background reading on mobility, balance, and staying active &mdash; curated from public
+    health and research organisations.
+  </p>
+</section>
+
+<section class="band">
+  <div class="band__inner">
+    {{ section_header(
+      'Where to read more',
+      'MotorScope is a tracking tool, not a medical device. These sources provide the wider context for staying active and noticing changes in movement.'
+    ) }}
+
+    <div class="resource-grid">
+      {{ resource_card(
+        'CDC STEADI',
+        'Balance, mobility, and fall-prevention resources from the Centers for Disease Control and Prevention.',
+        'https://www.cdc.gov/steadi/'
+      ) }}
+      {{ resource_card(
+        'National Institute on Aging',
+        'Guidance on exercise, mobility, healthy aging, and maintaining independence.',
+        'https://www.nia.nih.gov/health/exercise-and-physical-activity'
+      ) }}
+      {{ resource_card(
+        'NINDS',
+        'Learn how the brain and nervous system work together to control movement.',
+        'https://www.ninds.nih.gov/health-information/disorders'
+      ) }}
+      {{ resource_card(
+        'Move Your Way',
+        'National physical activity recommendations and practical ways to stay active.',
+        'https://odphp.health.gov/moveyourway/resources'
+      ) }}
+      {{ resource_card(
+        'MedlinePlus',
+        'Easy-to-understand health information covering exercise, balance, mobility, and healthy movement habits.',
+        'https://medlineplus.gov/'
+      ) }}
+      {{ resource_card(
+        'Cure PSP',
+        'Resources and support for people affected by progressive supranuclear palsy and other movement disorders.',
+        'https://www.psp.org/'
+      ) }}
+    </div>
+  </div>
+</section>
+
+<section class="band band--sunken">
+  <div class="band__inner band__inner--narrow">
+    {{ section_header('', 'How to use these alongside MotorScope') }}
+
+    <div class="prose">
+      <p>
+        These sources are a good place to understand mobility in general and to find
+        practical ways to stay active. MotorScope adds one specific thing: a record of
+        <em>your</em> movement over time, so you can describe what has changed for you rather
+        than only what is typical for people in general.
+      </p>
+      <p>
+        If something in your movement concerns you, please discuss it with a healthcare
+        professional. Reading is a useful complement to that conversation, not a substitute
+        for it.
+      </p>
+    </div>
+
+    <p class="band__cta">
+      <a class="text-link" href="/movement">Back to why movement matters</a>
+    </p>
+  </div>
+</section>
+{% endblock %}

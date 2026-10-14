@@ -1,0 +1,133 @@
+{#
+  Shared UI primitives.
+
+  Macros keep button and card markup in one place so pages do not drift apart. Import
+  what you need with `{% from "_macros.html" import ... %}`; each macro takes a plain
+  HTML string for classes so callers can adjust width and alignment.
+#}
+
+{# ---------------------------------------------------------- slide deck nav #}
+
+{#
+  The previous/next controls that flank a `.slides` deck (see slides.js). Kept here so
+  every arrow-driven page uses the same markup, labels and chevrons.
+#}
+{% macro slide_prev() %}
+  <button class="slides__nav slides__nav--prev" type="button" data-slide-prev
+          aria-label="Previous section">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+{% endmacro %}
+
+{% macro slide_next() %}
+  <button class="slides__nav slides__nav--next" type="button" data-slide-next
+          aria-label="Next section">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+{% endmacro %}
+
+{# ---------------------------------------------------------------- buttons #}
+
+{% macro primary_button(label, href, class_name='') %}
+  <a class="btn btn--primary {{ class_name }}" href="{{ href }}">{{ label }}</a>
+{% endmacro %}
+
+{% macro secondary_button(label, href, class_name='') %}
+  <a class="btn {{ class_name }}" href="{{ href }}">{{ label }}</a>
+{% endmacro %}
+
+{% macro text_link(label, href, class_name='') %}
+  <a class="text-link {{ class_name }}" href="{{ href }}">{{ label }} &rarr;</a>
+{% endmacro %}
+
+{# -------------------------------------------------------- section headers #}
+
+{% macro section_header(title, eyebrow='', intro='') %}
+  <header class="section-head">
+    {% if eyebrow %}<p class="section-head__eyebrow">{{ eyebrow }}</p>{% endif %}
+    <h2 class="section-head__title">{{ title }}</h2>
+    {% if intro %}<p class="section-head__intro">{{ intro }}</p>{% endif %}
+  </header>
+{% endmacro %}
+
+{# ------------------------------------------------------------------ cards #}
+
+{% macro process_step(number, title, body, items=()) %}
+  <article class="process-step">
+    <p class="process-step__number" aria-hidden="true">{{ number }}</p>
+    <h3 class="process-step__title">{{ title }}</h3>
+    <p class="process-step__body">{{ body }}</p>
+    {% if items %}
+      <ul class="chip-list">
+        {% for item in items %}<li class="chip">{{ item }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+  </article>
+{% endmacro %}
+
+{% macro resource_card(name, caption, href) %}
+  <article class="resource-card">
+    <h3 class="resource-card__name">{{ name }}</h3>
+    <p class="resource-card__caption">{{ caption }}</p>
+    <a class="resource-card__link" href="{{ href }}" target="_blank" rel="noopener noreferrer">
+      Visit Resource
+      <span class="visually-hidden"> (opens in a new tab)</span>
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M6 3l5 5-5 5" stroke="currentColor" stroke-width="1.6"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+  </article>
+{% endmacro %}
+
+{#
+  A metric tile used by the homepage dashboard preview and the signed-in dashboard.
+
+  `direction` is 'up', 'down' or 'flat' and describes the movement of the underlying
+  measurement, not whether it is good. Status is carried by wording and an arrow glyph as
+  well as colour, so it is never communicated by colour alone.
+#}
+{% macro metric_card(label, value='', unit='', status='', direction='', note='') %}
+  <article class="tile">
+    <p class="tile__label">{{ label }}</p>
+    {% if value %}
+      <p class="tile__value">{{ value }}{% if unit %} <span class="tile__unit">{{ unit }}</span>{% endif %}</p>
+    {% endif %}
+    {% if status or note %}
+      <p class="tile__foot">
+        {% if direction %}
+          <span class="trend trend--{{ direction }}">
+            <span class="trend__arrow" aria-hidden="true">
+              {%- if direction == 'up' %}&uarr;{% elif direction == 'down' %}&darr;{% else %}&ndash;{% endif -%}
+            </span>
+            {{ status }}
+          </span>
+        {% else %}
+          <span class="tile__status">{{ status }}</span>
+        {% endif %}
+        {% if note %}<span class="tile__note">{{ note }}</span>{% endif %}
+      </p>
+    {% endif %}
+  </article>
+{% endmacro %}
+
+{% macro comparison_row(name, tracked, emphasis=false) %}
+  <div class="compare-row{% if emphasis %} compare-row--gap{% endif %}">
+    <span class="compare-row__name">{{ name }}</span>
+    <span class="compare-row__state">
+      {% if tracked %}
+        <span class="compare-row__mark compare-row__mark--yes" aria-hidden="true">&check;</span>
+        <span>Commonly tracked</span>
+      {% else %}
+        <span class="compare-row__mark compare-row__mark--gap" aria-hidden="true">&mdash;</span>
+        <span>Often overlooked</span>
+      {% endif %}
+    </span>
+  </div>
+{% endmacro %}

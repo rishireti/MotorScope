@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% from "_macros.html" import section_header, slide_prev, slide_next %}
+{% block title %}Why Movement Matters{% endblock %}
+{% block body_class %}shell-public page-movement{% endblock %}
+{% block content %}
+{#
+  A horizontal slide deck rather than a long scroll. The arrows move between panels with
+  JavaScript; without it the panels stack as a normal, scrollable page (see slides.js,
+  which adds `slides--ready` before switching the track to a horizontal row).
+#}
+<div class="slides" data-slides>
+  {{ slide_prev() }}
+
+  <div class="slides__viewport">
+    <div class="slides__track" data-slide-track>
+
+      <section class="slide slide--intro" data-slide data-label="Movement awareness" aria-label="Movement awareness">
+        <div class="slide__inner">
+          <p class="eyebrow">Movement awareness</p>
+          <h1 class="slide__title">Why Movement Matters</h1>
+          <p class="slide__lead">
+            Understanding movement, recognizing changes, and supporting lifelong mobility and
+            independence.
+          </p>
+          <div class="prose prose--lede">
+            <p>
+              Movement is one of the most direct signals of how a body is doing. It shows up in
+              the morning getting out of bed, in the length of a walk to the shop, in whether a
+              flight of stairs still feels ordinary. These details are easy to overlook precisely
+              because they change slowly.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" data-slide data-label="Changing gradually" aria-label="Movement can change gradually">
+        <div class="slide__inner">
+          {{ section_header(
+            'Movement can change gradually',
+            intro='Most changes in walking and balance do not arrive as a single obvious event.
+             They accumulate over weeks or months, and by the time they are noticeable, the
+             earlier pattern has already scrolled out of memory.'
+          ) }}
+          <div class="prose">
+            <p>
+              A person may stop using the handrail without realising it, take a slightly wider
+              path around an obstacle, or find a favourite walk takes more effort than it used
+              to. None of these are alarming on their own. Together, over time, they describe a
+              change in movement that is worth understanding.
+            </p>
+            <p>
+              This is the reason a record of your own normal pattern is useful. A comparison
+              against a population average can say something is outside a typical range. A
+              comparison against your own baseline shows how <em>you</em> are moving compared
+              with how you usually move, which is often the more useful question.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" data-slide data-label="Everyday life" aria-label="Movement affects everyday life">
+        <div class="slide__inner">
+          {{ section_header(
+            'Movement affects everyday life',
+            intro='Mobility is closely tied to the activities that make up a normal week, and to
+             the independence people value as they age.'
+          ) }}
+          <div class="feature-list">
+            <article class="feature">
+              <h3 class="feature__title">Daily activities</h3>
+              <p class="feature__body">
+                Carrying groceries, walking to a car, turning to look behind you, and climbing a
+                few steps all draw on the same movement capacity that a walking measurement
+                reflects.
+              </p>
+            </article>
+            <article class="feature">
+              <h3 class="feature__title">Confidence and activity</h3>
+              <p class="feature__body">
+                When walking feels less certain, people often reduce how far they go. Less
+                walking makes it harder to judge how much has changed, which is a gap a simple
+                record helps to close.
+              </p>
+            </article>
+            <article class="feature">
+              <h3 class="feature__title">Independence</h3>
+              <p class="feature__body">
+                Staying able to move comfortably for longer supports the independence that lets
+                people keep doing the things and visiting the people they care about.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" data-slide data-label="What we measure" aria-label="What movement measurements can tell you">
+        <div class="slide__inner">
+          {{ section_header(
+            'What movement measurements can tell you',
+            intro='Devices such as an iPhone and Apple Watch can measure several aspects of
+             walking during ordinary activity.'
+          ) }}
+          <div class="prose">
+            <p>
+              These measurements describe how someone moved during a walk, not why. Speed,
+              stride length, symmetry between the left and right sides, steadiness, and step
+              count can each shift over time. Seeing them plotted against your own history makes
+              gradual shifts easier to recognise than remembering individual walks.
+            </p>
+            <p>
+              MotorScope organises these measurements so they can be compared consistently. It
+              does not interpret them. It is not a diagnostic tool, and it is not designed to
+              detect any particular condition.
+            </p>
+          </div>
+          <p class="band__cta">
+            <a class="text-link" href="/how-it-works">See how the measurements are collected</a>
+          </p>
+        </div>
+      </section>
+
+      <section class="slide" id="when-to-talk" data-slide data-label="When to talk to a professional" aria-label="When to talk with a healthcare professional">
+        <div class="slide__inner">
+          {{ section_header(
+            'When to talk with a healthcare professional',
+            intro='Tracking is a way to have a more useful conversation, not a substitute for one.'
+          ) }}
+          <div class="prose">
+            <p>
+              If you notice persistent or meaningful changes in your movement &mdash; for example
+              a limp that does not settle, increasing stiffness, or a fall &mdash; it is
+              reasonable to raise it with a healthcare professional. A short record of what has
+              changed, and over what period, makes that conversation easier to start.
+            </p>
+            <p>
+              Seek medical advice promptly if movement changes come with chest pain, severe
+              shortness of breath, sudden weakness, or a fall. MotorScope is not able to detect
+              any of these, and no reading from this app should delay getting care.
+            </p>
+          </div>
+          <div class="callout">
+            <p class="callout__text">
+              MotorScope is a movement-awareness and tracking tool. It is not a medical device
+              and does not diagnose, treat, or predict medical conditions.
+            </p>
+            <a class="btn btn--primary" href="/dashboard">View My Mobility</a>
+          </div>
+        </div>
+      </section>
+
+      <section class="slide" id="about" data-slide data-label="About MotorScope" aria-label="About MotorScope">
+        <div class="slide__inner">
+          {{ section_header(
+            'About MotorScope',
+            intro='A record of your own movement, built on measurements you are already taking.'
+          ) }}
+          <div class="prose">
+            <p>
+              MotorScope began from a simple observation: people track many health signals, and
+              almost none of them describe how they move. Movement is measurable with hardware
+              most people already carry, yet it rarely gets the attention that blood pressure or
+              cholesterol receive.
+            </p>
+            <p>
+              The product is deliberately narrow. It records the measurements your devices
+              collect, arranges them on a single timeline, and shows you how your recent movement
+              compares with your own history. It does not interpret those changes, assign them a
+              meaning, or suggest what to do about them. Deciding what a pattern means stays with
+              you and your healthcare professional.
+            </p>
+            <p>
+              MotorScope is not a medical device. It does not diagnose, treat, or predict medical
+              conditions, and it is not a substitute for clinical assessment or care.
+            </p>
+          </div>
+          <p class="band__cta">
+            <a class="text-link" href="/how-it-works">See how it works</a>
+          </p>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  {{ slide_next() }}
+
+  <div class="slides__dots" data-slide-dots role="tablist" aria-label="Sections"></div>
+</div>
+{% endblock %}
+{% block scripts %}<script src="/static/js/slides.js?v={{ asset_version() }}" defer></script>{% endblock %}
