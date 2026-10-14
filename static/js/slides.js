@@ -21,6 +21,14 @@
     var slides = toArray(track.querySelectorAll("[data-slide]"));
     if (slides.length < 2) return;
 
+    /*
+      On phones the deck would force every panel to the height of the tallest one,
+      leaving big empty gaps, and the side arrows squeeze the text. Brush phones get
+      the plain stacked layout instead - the markup already ships that way, so we just
+      skip the upgrade. Tablets and desktops keep the carousel.
+    */
+    if (window.matchMedia("(max-width: 760px)").matches) return;
+
     var prev = deck.querySelector("[data-slide-prev]");
     var next = deck.querySelector("[data-slide-next]");
     var dotHost = deck.querySelector("[data-slide-dots]");
