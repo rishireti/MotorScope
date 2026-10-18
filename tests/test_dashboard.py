@@ -233,7 +233,12 @@ def main() -> int:
         check("disclaimer kept", "not a medical device" in body)
 
         print("\nDashboard with a single reading")
-        db.save_mobility_reading(user_id, "2026-04-01", {"walking_speed": 1.2, "walking_steadiness": 70.0}, 48.3)
+        db.save_mobility_reading(
+            user_id,
+            "2026-04-01",
+            {"walking_speed": 1.2, "walking_steadiness": 70.0},
+            mobility.score_values({"walking_speed": 1.2, "walking_steadiness": 70.0}),
+        )
         body = client.get("/dashboard").text
         check("chart drawn", "chart__svg" in body)
         check("single reading shows a dot, not a line", "chart__dot" in body and "chart__line" not in body)
@@ -258,7 +263,7 @@ def main() -> int:
         check("axis spans the range", "01 Jan 2026 to 01 Apr 2026" in body)
         check("one dot per reading", body.count('class="chart__dot"') == 4, str(body.count('class="chart__dot"')))
         check("caveat about gaps", "not that nothing changed" in body)
-        check("prompt still reachable in footer", "Input measurements" in body)
+        check("prompt still reachable in footer", "View metrics" in body)
         check("guidance to use the mobility tab shown with data", "My Mobility" in body and "extend this chart" in body)
         check("guidance links to mobility", 'href="/mobility"' in body)
 

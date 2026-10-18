@@ -29,7 +29,7 @@ FOOTER_DISCLAIMER = (
 )
 
 LOCAL_STORAGE_NOTE = (
-    "Your MotorScope account and mobility records are stored locally on this device"
+    "Your MotorScope account and mobility records are stored securely with your account"
 )
 
 

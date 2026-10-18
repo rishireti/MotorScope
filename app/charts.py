@@ -151,6 +151,7 @@ def line_chart(
     pad_top: int = 16,
     pad_bottom: int = 28,
     unit: str = "",
+    decimals: int = 0,
 ) -> dict | None:
     """SVG geometry for a line chart, or None when there is nothing to plot."""
     if not series:
@@ -191,7 +192,7 @@ def line_chart(
         grid.append(
             {
                 "y": round(pad_top + inner_h * ratio, 2),
-                "label": f"{value:.0f}{unit}",
+                "label": f"{value:.{decimals}f}{unit}",
             }
         )
 
@@ -199,8 +200,8 @@ def line_chart(
         {
             "cx": round(x, 2),
             "cy": round(y, 2),
-            "value": f"{point.value:g}",
-            "title": f"{point.when.strftime('%d %b %Y, %H:%M')}: {point.value:g}{unit}",
+            "value": f"{point.value:.{decimals}f}",
+            "title": f"{point.when.strftime('%d %b %Y, %H:%M')}: {point.value:.{decimals}f}{unit}",
         }
         for point, (x, y) in zip(series, coords)
     ]

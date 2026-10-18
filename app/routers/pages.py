@@ -25,6 +25,11 @@ router = APIRouter()
 #: Readings pulled for the dashboard trend chart.
 CHART_READING_LIMIT = 120
 
+#: Geometry for the small per-metric charts in the Mobility catalogue.
+MINI_CHART_WIDTH = 300
+MINI_CHART_HEIGHT = 130
+MINI_CHART_GRID_LINES = 2
+
 
 @router.get("/", response_class=HTMLResponse)
 async def landing(request: Request, user: CurrentUser | None = Depends(optional_user)):
@@ -145,8 +150,8 @@ def _latest_metric_cards(latest, previous=None) -> list[dict]:
         value = float(raw)
         card = {
             "label": metric.label,
-            "value": f"{value:g}",
-            "unit": metric.unit,
+            "value": mobility.format_value(metric, value),
+            "unit": metric.shown_unit,
             "watch_only": metric.watch_only,
             "direction": "",
             "change_note": "",
@@ -345,6 +350,7 @@ def _render_mobility(
             "app_page": "mobility",
             "metrics": mobility.METRICS,
             "metrics_by_key": mobility.METRICS_BY_KEY,
+            "metric_panels": _metric_panels(history),
             "values": values,
             "errors": errors,
             "saved": saved,
@@ -352,12 +358,76 @@ def _render_mobility(
             "history": history,
             "today": db.local_date(),
             "import_summaries": import_summaries,
+            "import_rows": _import_rows(import_summaries),
             "import_scanned": scanned,
             "import_recorded_on": max(
                 (summary.recorded_on for summary in import_summaries), default=""
             ),
         },
     )
+
+
+def _metric_panels(readings) -> list[dict]:
+    """One catalogue entry per metric: its description, expected range, and its own
+    trend chart in display units.
+
+    The stored values are metric, so they are converted before plotting to match the
+    imperial range shown beside the chart.
+    """
+    panels = []
+    for metric in mobility.METRICS:
+        series = charts.build_series(readings, metric.key)
+        display_series = [
+            charts.Point(
+                when=point.when,
+                value=mobility.to_display(metric, point.value),
+                label=point.label,
+            )
+            for point in series
+        ]
+        chart = (
+            charts.line_chart(
+                display_series,
+                width=MINI_CHART_WIDTH,
+                height=MINI_CHART_HEIGHT,
+                grid_lines=MINI_CHART_GRID_LINES,
+                pad_left=36,
+                pad_right=10,
+                pad_top=12,
+                pad_bottom=22,
+                decimals=metric.display_decimals,
+            )
+            if display_series
+            else None
+        )
+        panels.append(
+            {
+                "metric": metric,
+                "chart": chart,
+                "has_data": bool(display_series),
+                "point_count": len(display_series),
+                "range_text": mobility.range_text(metric),
+            }
+        )
+    return panels
+
+
+def _import_rows(import_summaries: tuple) -> list[dict]:
+    """The 'what was found' table, with each value in its display unit."""
+    rows = []
+    for summary in import_summaries:
+        metric = mobility.METRICS_BY_KEY.get(summary.key)
+        if metric is None:
+            continue
+        rows.append(
+            {
+                "label": metric.label,
+                "value": mobility.format_value(metric, summary.value),
+                "unit": metric.shown_unit,
+                "recorded_on": summary.recorded_on,
+            }
+        )
+    return rows
 
 
 @router.get("/account", response_class=HTMLResponse)

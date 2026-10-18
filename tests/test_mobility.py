@@ -93,6 +93,35 @@ def main() -> int:
     check("above range clamps to 100", round(mobility.normalise(speed, 99.0)) == 100)
     check("below range clamps to zero", round(mobility.normalise(speed, -5.0)) == 0)
 
+    print("\nExpected ranges")
+    ranges = {m.key: (m.low, m.high) for m in mobility.METRICS}
+    check("walking speed unchanged", ranges["walking_speed"] == (0.4, 2.0))
+    check("step length 40-90 cm", ranges["step_length"] == (40.0, 90.0))
+    check("walking asymmetry 0-100%", ranges["walking_asymmetry"] == (0.0, 100.0))
+    check("double support unchanged", ranges["double_support_time"] == (15.0, 45.0))
+    check("cardio fitness 14-65", ranges["cardio_fitness"] == (14.0, 65.0))
+    check("ground contact 200-350 ms", ranges["ground_contact_time"] == (200.0, 350.0))
+    check("running stride 70-140 cm", ranges["running_stride_length"] == (70.0, 140.0))
+    check("six minute walk 400-900 m", ranges["six_minute_walk"] == (400.0, 900.0))
+    check("stair up 0-1 m/s", ranges["stair_speed_up"] == (0.0, 1.0))
+    check("stair down 0-1 m/s", ranges["stair_speed_down"] == (0.0, 1.0))
+    check("vertical oscillation 5-11 cm", ranges["vertical_oscillation"] == (5.0, 11.0))
+    check("walking steadiness 0-100%", ranges["walking_steadiness"] == (0.0, 100.0))
+    check("asymmetry describes timing, not speed", "timing" in mobility.METRICS_BY_KEY["walking_asymmetry"].description)
+
+    print("\nDisplay units")
+    check("speed shown in mph", speed.shown_unit == "mph", speed.shown_unit)
+    check("speed range converted", mobility.range_text(speed) == "0.9\u20134.5 mph", mobility.range_text(speed))
+    check("speed value converted", mobility.format_value(speed, 1.0) == "2.2", mobility.format_value(speed, 1.0))
+    step = mobility.METRICS_BY_KEY["step_length"]
+    check("step length in inches", step.shown_unit == "in")
+    check("step length range converted", mobility.range_text(step) == "15.7\u201335.4 in", mobility.range_text(step))
+    check("six minute walk in feet", mobility.METRICS_BY_KEY["six_minute_walk"].shown_unit == "ft")
+    check("stairs in feet per second", mobility.METRICS_BY_KEY["stair_speed_up"].shown_unit == "ft/s")
+    check("ground contact keeps ms", mobility.METRICS_BY_KEY["ground_contact_time"].shown_unit == "ms")
+    check("cardio fitness keeps its unit", mobility.METRICS_BY_KEY["cardio_fitness"].shown_unit == "mL/(kg\u00b7min)")
+
+
     print("\nScoring")
     check("no readings scores None", mobility.score_values({}) is None)
     best = mobility.score_values(
@@ -184,31 +213,36 @@ def main() -> int:
         user_id = sign_in(client, "mobility@example.com", "Mobility Tester")
         check("signed in", user_id > 0)
 
-        print("\nSigned-in form")
+        print("\nSigned-in metric catalogue")
         page = client.get("/mobility")
         check("page renders", page.status_code == 200)
         body = page.text
         for label in ("Walking speed", "Cardio fitness", "Walking steadiness", "Vertical oscillation"):
             check(f"describes '{label}'", label in body)
         check("explains the Health app path", "Health app" in body and "Mobility" in body)
-        check("shows units", "m/s" in body and "mL/(kg·min)" in body)
+        check("shows the imperial units", "mph" in body and "ft/s" in body)
+        check("keeps the VO2 max unit", "mL/(kg·min)" in body)
         check("marks watch metrics", "Apple Watch" in body)
         check("carries the medical disclaimer", "not a medical device" in body)
         check("scoring explainer removed", "sub-score" not in body.lower())
         check("summary explainer removed", "What your mobility summary means" not in body)
         check("no score bands shown", all(b.label not in body for b in mobility.SCORE_BANDS))
-        check("says what is recorded", "record only the measurements" in body)
+        check("one panel per metric", body.count('class="metric-panel"') == 12, str(body.count('class="metric-panel"')))
+        check("expected ranges shown", "Expected range" in body)
+        check("step length range in the copy", "15.7\u201335.4 in" in body)
+        check("walking speed range in the copy", "0.9\u20134.5 mph" in body)
+        check("no manual entry field", 'name="walking_speed"' not in body)
+        check("sources heading shown", "Where the expected ranges come from" in body)
+        for url in (
+            "Measuring_Walking_Quality_Through_iPhone_Mobility_Metrics.pdf",
+            "PMC8985335",
+            "support.apple.com/en-us/108790",
+            "PMC10588426",
+            "nihms315205",
+        ):
+            check(f"source linked: {url[:32]}", url in body)
 
         print("\nStorage")
-        from datetime import date as _date
-
-        expected_today = _date.today().isoformat()
-        page = client.get("/mobility")
-        check(
-            "date input defaults to the user's local day",
-            f'value="{expected_today}"' in page.text,
-        )
-
         reading_id = db.save_mobility_reading(user_id, "2026-03-01", {"walking_speed": 1.3}, 42.0)
         check("reading inserted", reading_id > 0)
         rows = db.get_mobility_readings(user_id)
@@ -224,14 +258,13 @@ def main() -> int:
         check("newest first", rows[0]["recorded_on"] == "2026-03-01", rows[0]["recorded_on"])
         check("latest helper agrees", db.get_latest_mobility_reading(user_id)["recorded_on"] == "2026-03-01")
 
-        print("\nValidation through the route")
+        print("\nSubmissions through the review endpoint")
         response = client.post(
             "/mobility",
             data={"csrf_token": csrf(client, "/mobility"), "walking_speed": "not-a-number"},
         )
         check("invalid input re-renders", response.status_code == 200)
-        check("validation error shown", "Enter a number." in response.text)
-        check("nothing stored", len(db.get_mobility_readings(user_id)) == 2)
+        check("nothing stored from invalid input", len(db.get_mobility_readings(user_id)) == 2)
 
         response = client.post("/mobility", data={"csrf_token": csrf(client, "/mobility")})
         check("empty form rejected", response.status_code == 200)
@@ -247,9 +280,6 @@ def main() -> int:
             },
         )
         check("page still renders", response.status_code == 200, str(response.status_code))
-        check("the bad field is flagged", "Enter a number." in response.text)
-        check("the good value is kept", "1.3" in response.text)
-        check("no sub-score displayed", "Sub-score" not in response.text)
         check("nothing stored from a rejected form", len(db.get_mobility_readings(user_id)) == 2)
 
         print("\nCSRF protection")
@@ -287,6 +317,8 @@ def main() -> int:
         check("score stays in range", 0 <= newest["score"] <= 100)
 
         print("\nDate defaults to today when omitted")
+        from datetime import date as _date
+
         client.post(
             "/mobility",
             data={"csrf_token": csrf(client, "/mobility"), "walking_speed": "1.2"},
@@ -305,6 +337,12 @@ def main() -> int:
         check("success banner after redirect", "Reading saved." in confirm.text)
         check("history rendered", "Past readings" in confirm.text)
         check("older reading listed", "2026-02-01" in confirm.text)
+
+        print("\nPer-metric charts track each metric")
+        body = client.get("/mobility").text
+        check("catalogue draws charts", 'class="chart__svg"' in body)
+        check("a chart per metric with data", body.count('class="chart__dot"') >= 1)
+        check("metrics without data say so", "No readings recorded yet." in body)
 
         print("\nReadings stay private per user")
         client.cookies.clear()

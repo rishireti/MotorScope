@@ -46,6 +46,49 @@
   <a class="text-link {{ class_name }}" href="{{ href }}">{{ label }} &rarr;</a>
 {% endmacro %}
 
+{# --------------------------------------------------------------- charts #}
+
+{#
+  The SVG geometry produced by app/charts.py, drawn once and reused by the dashboard's
+  composite trend and every per-metric mini chart. The viewBox keeps it sharp and the
+  `.chart__svg` rule lets it scale to the width of its container.
+#}
+{% macro chart_svg(chart, aria_label='Trend over time', class_name='') %}
+  <svg
+    class="chart__svg{% if class_name %} {{ class_name }}{% endif %}"
+    viewBox="0 0 {{ chart.width }} {{ chart.height }}"
+    role="img"
+    aria-label="{{ aria_label }}"
+    preserveAspectRatio="xMidYMid meet"
+  >
+    {% for line in chart.grid %}
+      <line class="chart__gridline" x1="{{ chart.pad_left }}" y1="{{ line.y }}"
+            x2="{{ chart.pad_left + chart.inner_w }}" y2="{{ line.y }}"></line>
+      <text class="chart__axis-label" x="{{ chart.pad_left - 8 }}" y="{{ line.y + 4 }}"
+            text-anchor="end">{{ line.label }}</text>
+    {% endfor %}
+
+    <polygon class="chart__area" points="{{ chart.area_points }}"></polygon>
+
+    {% if not chart.single %}
+      <polyline class="chart__line" points="{{ chart.line_points }}"></polyline>
+    {% endif %}
+
+    {% for dot in chart.dots %}
+      <circle class="chart__dot" cx="{{ dot.cx }}" cy="{{ dot.cy }}" r="3.5">
+        <title>{{ dot.title }}</title>
+      </circle>
+    {% endfor %}
+
+    <text class="chart__axis-label" x="{{ chart.pad_left }}" y="{{ chart.height - 8 }}"
+          text-anchor="start">{{ chart.x_first }}</text>
+    {% if not chart.single %}
+      <text class="chart__axis-label" x="{{ chart.pad_left + chart.inner_w }}" y="{{ chart.height - 8 }}"
+            text-anchor="end">{{ chart.x_last }}</text>
+    {% endif %}
+  </svg>
+{% endmacro %}
+
 {# -------------------------------------------------------- section headers #}
 
 {% macro section_header(title, eyebrow='', intro='') %}

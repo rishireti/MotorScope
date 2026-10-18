@@ -152,16 +152,18 @@ def csfr(client: TestClient, path: str) -> str:
 
 
 def extract_imported_fields(page_html: str) -> dict[str, str]:
-    """Pull the numeric values out of the 'what was found' table for re-saving."""
-    labels = {metric.label: metric.key for metric in mobility.METRICS}
+    """Pull the metric values out of the read-only review form's hidden fields.
+
+    The visible table shows each value in its display (imperial) unit, so the machine
+    values that get saved are read from the hidden inputs rather than the table.
+    """
     found: dict[str, str] = {}
-    for label, value in re.findall(
-        r'<tr>\s*<th scope="row">([^<]+)</th>\s*<td class="mono">\s*([^<]+?)\s*</td>',
+    for name, value in re.findall(
+        r'<input type="hidden" name="([a-z_]+)" value="([^"]*)"',
         page_html,
     ):
-        key = labels.get(label.strip())
-        if key:
-            found[key] = value.split()[0]
+        if name in mobility.METRICS_BY_KEY:
+            found[name] = value
     return found
 
 
@@ -428,7 +430,7 @@ def main() -> int:
         )
         check("valid upload accepted", good.status_code == 200, str(good.status_code))
         check("import reports the metrics found", "12" in good.text or "Imported" in good.text)
-        check("imported values shown", "1.35" in good.text)
+        check("imported values shown in display units", "3.0 mph" in good.text and "28.3 in" in good.text)
         check("import does not silently save", len(db.get_mobility_readings(user_id)) == 0)
 
         saved = client.post(

@@ -1,6 +1,6 @@
 {% set shell = 'app' %}
 {% extends "base.html" %}
-{% from "_macros.html" import metric_card, primary_button %}
+{% from "_macros.html" import metric_card, primary_button, chart_svg %}
 {% block title %}Dashboard{% endblock %}
 {% block body_class %}shell-app{% endblock %}
 {% block content %}
@@ -25,7 +25,7 @@
         Your movement, built from the readings you have recorded.
       </p>
     </div>
-    <a class="btn btn--small" href="/mobility">Record a reading</a>
+    <a class="btn btn--small" href="/mobility">Import readings</a>
   </header>
 
   {% if not verified %}
@@ -58,39 +58,7 @@
           <span class="chart__range">{{ score_chart.x_first }}{% if score_chart.point_count > 1 %} to {{ score_chart.x_last }}{% endif %}</span>
         </figcaption>
 
-        <svg
-          class="chart__svg"
-          viewBox="0 0 {{ score_chart.width }} {{ score_chart.height }}"
-          role="img"
-          aria-label="Line chart of your mobility trend from {{ score_chart.x_first }} to {{ score_chart.x_last }}"
-          preserveAspectRatio="xMidYMid meet"
-        >
-          {% for line in score_chart.grid %}
-            <line class="chart__gridline" x1="{{ score_chart.pad_left }}" y1="{{ line.y }}"
-                  x2="{{ score_chart.pad_left + score_chart.inner_w }}" y2="{{ line.y }}"></line>
-            <text class="chart__axis-label" x="{{ score_chart.pad_left - 8 }}" y="{{ line.y + 4 }}"
-                  text-anchor="end">{{ line.label }}</text>
-          {% endfor %}
-
-          <polygon class="chart__area" points="{{ score_chart.area_points }}"></polygon>
-
-          {% if not score_chart.single %}
-            <polyline class="chart__line" points="{{ score_chart.line_points }}"></polyline>
-          {% endif %}
-
-          {% for dot in score_chart.dots %}
-            <circle class="chart__dot" cx="{{ dot.cx }}" cy="{{ dot.cy }}" r="3.5">
-              <title>{{ dot.title }}</title>
-            </circle>
-          {% endfor %}
-
-          <text class="chart__axis-label" x="{{ score_chart.pad_left }}" y="{{ score_chart.height - 8 }}"
-                text-anchor="start">{{ score_chart.x_first }}</text>
-          {% if not score_chart.single %}
-            <text class="chart__axis-label" x="{{ score_chart.pad_left + score_chart.inner_w }}" y="{{ score_chart.height - 8 }}"
-                  text-anchor="end">{{ score_chart.x_last }}</text>
-          {% endif %}
-        </svg>
+        {{ chart_svg(score_chart, 'Line chart of your mobility trend from ' ~ score_chart.x_first ~ ' to ' ~ score_chart.x_last) }}
 
         <p class="chart__note">
           Each point is one saved reading. Gaps in the line mean no readings were recorded in
@@ -98,26 +66,26 @@
         </p>
 
         <p class="chart__cta">
-          Go to <a href="/mobility"><strong>My Mobility</strong></a> to record readings and
+          Go to <a href="/mobility"><strong>My Mobility</strong></a> to add readings and
           extend this chart.
         </p>
       </figure>
 
       <div class="trend-actions">
-        <a class="btn btn--small" href="/mobility">Record a reading</a>
+        <a class="btn btn--small" href="/mobility">Import readings</a>
         <a class="text-link" href="/how-it-works">How these measurements work</a>
       </div>
     {% else %}
       <div class="mobility-prompt">
         <p class="mobility-prompt__text">
-          Go to <strong>My Mobility</strong> to record your first measurement and start
+          Go to <strong>My Mobility</strong> to import your first reading and start
           building a baseline you can compare against.
         </p>
         <a class="btn btn--primary" href="/mobility">Go to My Mobility</a>
         <p class="mobility-prompt__hint">
           Open the Health app, tap <strong>Browse</strong>, choose
-          <strong>Mobility</strong>, then copy your figures across &mdash; or import an Apple
-          Health export. Your chart builds itself as you save each reading.
+          <strong>Mobility</strong>, and import an Apple Health export. Your chart builds
+          itself as you save each reading.
         </p>
       </div>
     {% endif %}
@@ -208,7 +176,7 @@
     {% endif %}
 
     <p class="panel__foot">
-      <a href="/mobility">Input measurements</a> &middot;
+      <a href="/mobility">View metrics</a> &middot;
       <a href="/account">Account settings</a>
     </p>
   </section>

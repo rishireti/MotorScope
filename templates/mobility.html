@@ -1,5 +1,6 @@
 {% set shell = 'app' %}
 {% extends "base.html" %}
+{% from "_macros.html" import chart_svg %}
 {% block title %}My Mobility{% endblock %}
 {% block body_class %}shell-app{% endblock %}
 {% block content %}
@@ -8,9 +9,10 @@
   <p class="eyebrow">Import</p>
   <h1>Pull your data from the Health app</h1>
   <p class="subtitle">
-    Rather than typing numbers in one by one, export everything from Health on your iPhone
-    and upload the ZIP here. MotorScope reads only the mobility measurements and saves them
-    as readings you can compare over time.
+    MotorScope reads your measurements from an Apple Health export rather than asking you to
+    type them in. Export everything from Health on your iPhone and upload the ZIP here.
+    MotorScope reads only the mobility measurements and files them as readings you can
+    compare over time.
   </p>
 
   {% if errors.import %}
@@ -58,14 +60,13 @@
 {% if import_summaries %}
 <section class="panel panel--wide">
   <div class="alert alert--success">
-    Read {{ import_summaries|length }} measurement{{ '' if import_summaries|length == 1 else 's' }}
+    Read {{ import_rows|length }} measurement{{ '' if import_rows|length == 1 else 's' }}
     from your export, filed under {{ import_recorded_on }}.
   </div>
   <h2>What was found</h2>
   <p class="section-note">
     Each value is the average of that metric's samples on its most recent day in the export.
-    Metrics last recorded on an earlier day keep that day. Check the date and the numbers
-    below, adjust anything you like, then save.
+    Check the values below, then save to add them to your history.
   </p>
   <table class="history-table">
     <thead>
@@ -76,27 +77,33 @@
       </tr>
     </thead>
     <tbody>
-      {% for summary in import_summaries %}
+      {% for row in import_rows %}
         <tr>
-          <th scope="row">{{ metrics_by_key[summary.key].label }}</th>
-          <td class="mono">
-            {{ '%.4g'|format(summary.value) }}
-            {{ metrics_by_key[summary.key].unit }}
-          </td>
-          <td class="mono">{{ summary.recorded_on }}</td>
+          <th scope="row">{{ row.label }}</th>
+          <td class="mono">{{ row.value }} {{ row.unit }}</td>
+          <td class="mono">{{ row.recorded_on }}</td>
         </tr>
       {% endfor %}
     </tbody>
   </table>
+
+  <form method="post" action="/mobility" class="import-save">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="recorded_on" value="{{ import_recorded_on }}">
+    {% for key, value in values.items() %}
+      <input type="hidden" name="{{ key }}" value="{{ value }}">
+    {% endfor %}
+    <button type="submit" class="btn btn--primary">Save reading</button>
+  </form>
 </section>
 {% endif %}
 
 <section class="panel panel--wide panel--mobility">
   <p class="eyebrow">Mobility metrics</p>
-  <h1>Log your measurements</h1>
+  <h1>Your mobility metrics</h1>
   <p class="subtitle">
-    Enter whatever readings you have from the Health app. Blank fields are skipped, so you
-    can record only the measurements you actually took.
+    Every measurement MotorScope tracks, with what it means and the trend from your saved
+    readings. Readings arrive through the Health import above.
   </p>
 
   {% if saved %}
@@ -117,49 +124,37 @@
     </p>
   </div>
 
-  <form method="post" action="/mobility" class="stacked-form">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-    <div class="field">
-      <label for="recorded_on">Date measured</label>
-      <input id="recorded_on" name="recorded_on" type="date" value="{{ import_recorded_on or today }}">
-    </div>
-
-    <div class="metric-inputs">
-      {% for metric in metrics %}
-        <fieldset class="metric-input">
-          <legend>{{ metric.label }}</legend>
-          <p class="metric-input__unit">{{ metric.unit }}</p>
-          <p class="metric-input__desc">{{ metric.description }}</p>
+  <div class="metric-grid">
+    {% for panel in metric_panels %}
+      {% set metric = panel.metric %}
+      <article class="metric-panel">
+        <header class="metric-panel__head">
+          <h2 class="metric-panel__title">{{ metric.label }}</h2>
           {% if metric.watch_only %}
             <p class="tag tag--watch">Apple Watch</p>
           {% else %}
             <p class="tag tag--phone">iPhone</p>
           {% endif %}
-          <input
-            type="text"
-            inputmode="decimal"
-            name="{{ metric.key }}"
-            value="{{ values[metric.key] if values[metric.key] is defined else '' }}"
-            aria-describedby="{{ metric.key }}-hint"
-          >
-          <p id="{{ metric.key }}-hint" class="metric-input__range">
-            Expected range {{ '%.1f'|format(metric.low) }}&ndash;{{ '%.1f'|format(metric.high) }} {{ metric.unit }}
-            {% if metric.higher_is_better %}
-              &middot; higher is better
-            {% else %}
-              &middot; lower is better
-            {% endif %}
-          </p>
-          {% if errors[metric.key] is defined %}
-            <p class="field-error">{{ errors[metric.key] }}</p>
+        </header>
+        <p class="metric-panel__desc">{{ metric.description }}</p>
+        <p class="metric-panel__range">
+          Expected range {{ panel.range_text }}
+          {% if metric.higher_is_better %}
+            &middot; higher is better
+          {% else %}
+            &middot; lower is better
           {% endif %}
-        </fieldset>
-      {% endfor %}
-    </div>
-
-    <button type="submit" class="btn btn--primary">Save reading</button>
-  </form>
+        </p>
+        {% if panel.chart %}
+          <div class="metric-panel__chart">
+            {{ chart_svg(panel.chart, metric.label ~ ' over time') }}
+          </div>
+        {% else %}
+          <p class="metric-panel__empty">No readings recorded yet.</p>
+        {% endif %}
+      </article>
+    {% endfor %}
+  </div>
 </section>
 
 {% if history %}
@@ -190,6 +185,38 @@
   </table>
 </section>
 {% endif %}
+
+<section class="panel panel--wide">
+  <p class="eyebrow">Sources</p>
+  <h2>Where the expected ranges come from</h2>
+  <p class="section-note">
+    The expected ranges above are MotorScope's own conservative starting points, chosen with
+    reference to the following public sources. They are not clinical thresholds, and they
+    are not compared against other people or any published outcome.
+  </p>
+  <ol class="source-list">
+    <li>
+      <a href="https://www.apple.com/healthcare/docs/site/Measuring_Walking_Quality_Through_iPhone_Mobility_Metrics.pdf" target="_blank" rel="noopener noreferrer">Measuring Walking Quality Through iPhone Mobility Metrics</a>
+      (Apple) &mdash; walking speed, step length, double support time, and walking asymmetry.
+    </li>
+    <li>
+      <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8985335/pdf/12931_2022_Article_2003.pdf" target="_blank" rel="noopener noreferrer">Six-minute walk distance in healthy subjects: reference standards from a general population sample</a>
+      &mdash; six-minute walk distance.
+    </li>
+    <li>
+      <a href="https://support.apple.com/en-us/108790" target="_blank" rel="noopener noreferrer">Track your cardio fitness levels</a>
+      (Apple Support) &mdash; cardio fitness (VO2 max).
+    </li>
+    <li>
+      <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10588426/pdf/10.1177_23259671231204629.pdf" target="_blank" rel="noopener noreferrer">Reference values for running and walking gait metrics</a>
+      &mdash; ground contact time, vertical oscillation, and running stride length.
+    </li>
+    <li>
+      <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC3229719/pdf/nihms315205.pdf" target="_blank" rel="noopener noreferrer">Stair performance in healthy adults</a>
+      &mdash; stair ascent and descent speed.
+    </li>
+  </ol>
+</section>
 
 <p class="disclaimer">
   MotorScope is a tracking tool, not a medical device. It does not diagnose, rule out,

@@ -30,10 +30,21 @@ class Metric:
     higher_is_better: bool
     #: True when only a smartwatch can produce this measurement.
     watch_only: bool
+    #: Unit the metric is shown in. The value is stored in `unit`; this is only what the
+    #: reader sees, so an imperial unit such as mph or in is used where one is familiar.
+    display_unit: str = ""
+    #: Multiplier from the stored unit to the display unit (1.0 when they are the same).
+    display_factor: float = 1.0
+    #: Decimal places used when formatting the displayed value and its range.
+    display_decimals: int = 1
 
     @property
     def step(self) -> float:
         return round(self.high - self.low, 4)
+
+    @property
+    def shown_unit(self) -> str:
+        return self.display_unit or self.unit
 
 
 METRICS: tuple[Metric, ...] = (
@@ -50,6 +61,9 @@ METRICS: tuple[Metric, ...] = (
         high=2.0,
         higher_is_better=True,
         watch_only=False,
+        display_unit="mph",
+        display_factor=2.2369362920544,
+        display_decimals=1,
     ),
     Metric(
         key="step_length",
@@ -60,21 +74,25 @@ METRICS: tuple[Metric, ...] = (
             "steps at the same speed often signal a cautious or unsteady gait."
         ),
         low=40.0,
-        high=110.0,
+        high=90.0,
         higher_is_better=True,
         watch_only=False,
+        display_unit="in",
+        display_factor=0.39370078740157477,
+        display_decimals=1,
     ),
     Metric(
         key="walking_asymmetry",
         label="Walking asymmetry",
         unit="%",
         description=(
-            "The share of your steps where one foot moves faster than the other. Lower "
-            "is better: asymmetry often appears when one side is being favoured or "
-            "protected."
+            "The percentage of steps where the timing of one foot differs from the "
+            "other, so one side spends more or less time on the ground than its pair. A "
+            "lower number means the two sides move more evenly; asymmetry often appears "
+            "when one side is being favoured or protected."
         ),
         low=0.0,
-        high=20.0,
+        high=100.0,
         higher_is_better=False,
         watch_only=False,
     ),
@@ -100,8 +118,8 @@ METRICS: tuple[Metric, ...] = (
             "minute during exercise. Reflects overall cardiovascular fitness rather "
             "than gait specifically, but it shapes how much walking you manage."
         ),
-        low=20.0,
-        high=60.0,
+        low=14.0,
+        high=65.0,
         higher_is_better=True,
         watch_only=True,
     ),
@@ -113,10 +131,11 @@ METRICS: tuple[Metric, ...] = (
             "How long each foot stays in contact with the ground while running. Shorter "
             "contact usually indicates a more efficient, lighter stride."
         ),
-        low=180.0,
-        high=320.0,
+        low=200.0,
+        high=350.0,
         higher_is_better=False,
         watch_only=True,
+        display_decimals=0,
     ),
     Metric(
         key="running_stride_length",
@@ -127,9 +146,12 @@ METRICS: tuple[Metric, ...] = (
             "though very large strides can also mean overstriding."
         ),
         low=70.0,
-        high=200.0,
+        high=140.0,
         higher_is_better=True,
         watch_only=True,
+        display_unit="in",
+        display_factor=0.39370078740157477,
+        display_decimals=1,
     ),
     Metric(
         key="six_minute_walk",
@@ -139,10 +161,13 @@ METRICS: tuple[Metric, ...] = (
             "How far you can walk in six minutes. A practical endurance measure, and "
             "one clinicians often track before and after an intervention."
         ),
-        low=200.0,
-        high=800.0,
+        low=400.0,
+        high=900.0,
         higher_is_better=True,
         watch_only=True,
+        display_unit="ft",
+        display_factor=3.280839895013123,
+        display_decimals=0,
     ),
     Metric(
         key="stair_speed_up",
@@ -152,10 +177,13 @@ METRICS: tuple[Metric, ...] = (
             "Your pace climbing stairs. Stairs demand more of the legs and less visual "
             "feedback, so this often drops before flat-ground walking speed does."
         ),
-        low=0.2,
-        high=1.2,
+        low=0.0,
+        high=1.0,
         higher_is_better=True,
         watch_only=True,
+        display_unit="ft/s",
+        display_factor=3.280839895013123,
+        display_decimals=1,
     ),
     Metric(
         key="stair_speed_down",
@@ -165,10 +193,13 @@ METRICS: tuple[Metric, ...] = (
             "Your pace descending stairs. Descending is usually slower than climbing "
             "and is heavily influenced by balance and confidence."
         ),
-        low=0.2,
-        high=1.2,
+        low=0.0,
+        high=1.0,
         higher_is_better=True,
         watch_only=True,
+        display_unit="ft/s",
+        display_factor=3.280839895013123,
+        display_decimals=1,
     ),
     Metric(
         key="vertical_oscillation",
@@ -178,10 +209,13 @@ METRICS: tuple[Metric, ...] = (
             "How much your body rises and falls with each step. Less movement usually "
             "means a smoother, more even gait."
         ),
-        low=3.0,
-        high=12.0,
+        low=5.0,
+        high=11.0,
         higher_is_better=False,
         watch_only=True,
+        display_unit="in",
+        display_factor=0.39370078740157477,
+        display_decimals=1,
     ),
     Metric(
         key="walking_steadiness",
@@ -191,7 +225,7 @@ METRICS: tuple[Metric, ...] = (
             "Apple's own steadiness rating, which combines gait features into an "
             "estimate of fall risk over the following year. Higher is better."
         ),
-        low=30.0,
+        low=0.0,
         high=100.0,
         higher_is_better=True,
         watch_only=True,
@@ -201,6 +235,38 @@ METRICS: tuple[Metric, ...] = (
 METRICS_BY_KEY: dict[str, Metric] = {m.key: m for m in METRICS}
 WATCH_ONLY_KEYS: tuple[str, ...] = tuple(m.key for m in METRICS if m.watch_only)
 MANUAL_ONLY_KEYS: tuple[str, ...] = tuple(m.key for m in METRICS if not m.watch_only)
+
+
+# ---------------------------------------------------------------------------
+# Display units
+#
+# Everything is stored and scored in the metric unit Apple reports (metres,
+# centimetres, metres per second). Where a familiar imperial unit exists it is used
+# for display only, so the reader sees mph rather than m/s while the stored history,
+# the expected range arithmetic, and the score all stay in one consistent system.
+# ---------------------------------------------------------------------------
+
+
+def to_display(metric: Metric, value: float) -> float:
+    """Convert a stored value into the unit the reader is shown."""
+    return value * metric.display_factor
+
+
+def format_value(metric: Metric, value: float) -> str:
+    """Format a stored value in its display unit, at the metric's precision."""
+    return f"{to_display(metric, value):.{metric.display_decimals}f}"
+
+
+def display_range(metric: Metric) -> tuple[float, float]:
+    """The expected range in the display unit."""
+    return to_display(metric, metric.low), to_display(metric, metric.high)
+
+
+def range_text(metric: Metric) -> str:
+    """Human-readable expected range in the display unit, e.g. `0.9-4.5 mph`."""
+    low, high = display_range(metric)
+    decimals = metric.display_decimals
+    return f"{low:.{decimals}f}\u2013{high:.{decimals}f} {metric.shown_unit}"
 
 
 def normalise(metric: Metric, value: float) -> float:
