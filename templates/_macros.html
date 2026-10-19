@@ -52,14 +52,22 @@
   The SVG geometry produced by app/charts.py, drawn once and reused by the dashboard's
   composite trend and every per-metric mini chart. The viewBox keeps it sharp and the
   `.chart__svg` rule lets it scale to the width of its container.
+
+  `zoomable` opts a chart into the pan/zoom controls added by chart.js (for the trend
+  charts, where a long history can pack the points too tightly to read). `tooltip_prefix`
+  and `tooltip_unit` label the custom hover readout that chart.js builds from each point's
+  `data-date` and `data-value`; the native `<title>` stays as a fallback without JS.
 #}
-{% macro chart_svg(chart, aria_label='Trend over time', class_name='') %}
+{% macro chart_svg(chart, aria_label='Trend over time', class_name='', zoomable=false, tooltip_prefix='', tooltip_unit='') %}
   <svg
     class="chart__svg{% if class_name %} {{ class_name }}{% endif %}"
     viewBox="0 0 {{ chart.width }} {{ chart.height }}"
     role="img"
     aria-label="{{ aria_label }}"
     preserveAspectRatio="xMidYMid meet"
+    {% if zoomable %}data-zoomable{% endif %}
+    {% if tooltip_prefix %}data-tooltip-prefix="{{ tooltip_prefix }}"{% endif %}
+    {% if tooltip_unit %}data-tooltip-unit="{{ tooltip_unit }}"{% endif %}
   >
     {% for line in chart.grid %}
       <line class="chart__gridline" x1="{{ chart.pad_left }}" y1="{{ line.y }}"
@@ -75,7 +83,9 @@
     {% endif %}
 
     {% for dot in chart.dots %}
-      <circle class="chart__dot" cx="{{ dot.cx }}" cy="{{ dot.cy }}" r="3.5">
+      <circle class="chart__dot" cx="{{ dot.cx }}" cy="{{ dot.cy }}" r="3.5"
+              {% if dot.date %}data-date="{{ dot.date }}"{% endif %}
+              data-value="{{ dot.value }}">
         <title>{{ dot.title }}</title>
       </circle>
     {% endfor %}

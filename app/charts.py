@@ -201,6 +201,7 @@ def line_chart(
             "cx": round(x, 2),
             "cy": round(y, 2),
             "value": f"{point.value:.{decimals}f}",
+            "date": point.label,
             "title": f"{point.when.strftime('%d %b %Y, %H:%M')}: {point.value:.{decimals}f}{unit}",
         }
         for point, (x, y) in zip(series, coords)

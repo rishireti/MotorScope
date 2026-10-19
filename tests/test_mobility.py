@@ -326,12 +326,30 @@ def main() -> int:
         rows = db.get_mobility_readings(user_id)
         check("saved without a date", rows[0]["recorded_on"] == _date.today().isoformat(), rows[0]["recorded_on"])
 
-        print("\nThe page no longer shows a score or band")
+        print("\nThe saved score is shown and tracked")
         body = client.get("/mobility").text
-        check("no score echoed", "score-value" not in body)
-        check("no current band highlight", "is-current" not in body)
-        check("no summary explainer", "What your mobility summary means" not in body)
-        check("history has no score column", "<th scope=\"col\">Score</th>" not in body)
+        latest = db.get_latest_mobility_reading(user_id)
+        check("latest score headline shown", "score-summary__number" in body)
+        check("score value rendered", str(latest["score"]) in body)
+        check("score band label shown", any(b.label in body for b in mobility.SCORE_BANDS))
+        check("score history tracks scores", "<th scope=\"col\">Score</th>" in body)
+        check("score trend chart drawn", "Mobility score over time" in body)
+        check("summary explainer not reused", "What your mobility summary means" not in body)
+
+        print("\nSeveral readings can share a day; exact repeats are skipped")
+        db.save_mobility_reading(user_id, "2026-05-10", {"walking_speed": 1.0}, 30.0)
+        db.save_mobility_reading(user_id, "2026-05-10", {"walking_speed": 1.6}, 70.0)
+        same_day = [
+            r for r in db.get_mobility_readings(user_id, limit=200)
+            if r["recorded_on"] == "2026-05-10"
+        ]
+        check("two different same-day readings kept", len(same_day) == 2, str(len(same_day)))
+        db.save_mobility_reading(user_id, "2026-05-10", {"walking_speed": 1.6}, 70.0)
+        same_day = [
+            r for r in db.get_mobility_readings(user_id, limit=200)
+            if r["recorded_on"] == "2026-05-10"
+        ]
+        check("identical same-day repeat skipped", len(same_day) == 2, str(len(same_day)))
 
         confirm = client.get("/mobility?saved=1")
         check("success banner after redirect", "Reading saved." in confirm.text)

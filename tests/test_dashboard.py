@@ -290,7 +290,16 @@ def main() -> int:
         print("\nChart markup safety")
         check("svg carries a role", 'role="img"' in body)
         check("svg has an aria-label", "aria-label=" in body)
-        check("no unescaped angle brackets leaked", "<script" not in body.lower())
+        # The page ships an external script for zoom/hover; what must never appear is an
+        # inline <script> without a src, which is the shape an injected payload takes.
+        check("no inline script injected", re.search(r"<script(?![^>]*\bsrc=)", body, re.I) is None)
+
+        print("\nChart zoom and hover readout")
+        check("score chart is zoomable", "data-zoomable" in body)
+        check("chart.js loaded", "/static/js/chart.js" in body)
+        check("chart.js served", client.get("/static/js/chart.js").status_code == 200)
+        check("points carry hover data", "data-value=" in body and "data-date=" in body)
+        check("tooltip labelled with the score", 'data-tooltip-prefix="Mobility score"' in body)
 
         print("\nUsers only see their own trend")
         client.cookies.clear()

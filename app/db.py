@@ -179,6 +179,30 @@ def _apply_migrations(connection: sqlite3.Connection) -> None:
             connection.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
     _relax_password_hash(connection)
+    _dedupe_identical_readings(connection)
+
+
+def _dedupe_identical_readings(connection: sqlite3.Connection) -> None:
+    """Drop repeat readings that hold the same day with the same numbers.
+
+    Re-importing an unchanged Health export used to stack identical rows on a single day,
+    which drew the trend as a flat line. Readings that differ on that day are kept, so
+    several genuinely different measurements still show as separate points.
+    """
+    info = {row["name"] for row in connection.execute("PRAGMA table_info(mobility_readings)")}
+    if "recorded_on" not in info:
+        return
+
+    group_columns = ", ".join(MOBILITY_COLUMNS)
+    connection.execute(
+        f"""
+        DELETE FROM mobility_readings
+         WHERE id NOT IN (
+               SELECT MAX(id) FROM mobility_readings
+                GROUP BY user_id, recorded_on, {group_columns}
+         )
+        """
+    )
 
 
 def _relax_password_hash(connection: sqlite3.Connection) -> bool:
@@ -472,15 +496,31 @@ def clear_login_failures(identifier: str) -> None:
 def save_mobility_reading(
     user_id: int, recorded_on: str, values: dict[str, float], score: float | None
 ) -> int:
-    """Store one set of metric readings and its composite score."""
+    """Store one set of metric readings and its composite score.
+
+    More than one reading may be filed under the same day, so each save normally adds a
+    point to the trend. The one exception is an exact repeat - the same day holding the
+    same numbers - which is skipped rather than stacked, because re-importing an unchanged
+    Health export used to line identical scores up across the chart as a flat line.
+    """
     columns = ", ".join(MOBILITY_COLUMNS)
     placeholders = ", ".join("?" for _ in MOBILITY_COLUMNS)
+    normalized = _normalize_values(values)
 
     sql = (
         f"INSERT INTO mobility_readings (user_id, {columns}, score, recorded_on, created_at) "
         f"VALUES (?, {placeholders}, ?, ?, ?)"
     )
     with get_connection() as connection:
+        existing = connection.execute(
+            f"SELECT id, {columns} FROM mobility_readings "
+            "WHERE user_id = ? AND recorded_on = ?",
+            (user_id, recorded_on),
+        ).fetchall()
+        for row in existing:
+            if _row_values(row) == normalized:
+                return int(row["id"])
+
         cursor = connection.execute(
             sql,
             (
@@ -492,6 +532,23 @@ def save_mobility_reading(
             ),
         )
     return int(cursor.lastrowid or 0)
+
+
+def _normalize_values(values: dict[str, float]) -> tuple:
+    """The metric columns of a reading as a comparable tuple, rounded so a re-import of
+    the same file matches even when floating-point noise differs between runs."""
+    return tuple(
+        None if values.get(name) is None else round(float(values[name]), 6)
+        for name in MOBILITY_COLUMNS
+    )
+
+
+def _row_values(row) -> tuple:
+    """The metric columns of a stored reading as a comparable tuple."""
+    return tuple(
+        None if row[name] is None else round(float(row[name]), 6)
+        for name in MOBILITY_COLUMNS
+    )
 
 
 def get_mobility_readings(user_id: int, limit: int = 30) -> list[sqlite3.Row]:

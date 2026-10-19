@@ -30,6 +30,10 @@ MINI_CHART_WIDTH = 300
 MINI_CHART_HEIGHT = 130
 MINI_CHART_GRID_LINES = 2
 
+#: Geometry for the Mobility Score trend chart on the My Mobility page.
+SCORE_CHART_WIDTH = 660
+SCORE_CHART_HEIGHT = 240
+
 
 @router.get("/", response_class=HTMLResponse)
 async def landing(request: Request, user: CurrentUser | None = Depends(optional_user)):
@@ -315,6 +319,7 @@ async def import_mobility(
                 saved=False,
                 import_summaries=parsed.summaries,
                 scanned=parsed.records_scanned,
+                preview_score=mobility.score_values(parsed.values),
             )
 
         return _render_mobility(
@@ -337,9 +342,13 @@ def _render_mobility(
     saved: bool,
     import_summaries: tuple = (),
     scanned: int = 0,
+    preview_score: float | None = None,
 ) -> HTMLResponse:
     latest = db.get_latest_mobility_reading(user.id)
     history = db.get_mobility_readings(user.id)
+
+    score_series = charts.build_series(history, "score")
+    latest_score = latest["score"] if latest is not None else None
 
     return templates.TemplateResponse(
         request=request,
@@ -363,6 +372,28 @@ def _render_mobility(
             "import_recorded_on": max(
                 (summary.recorded_on for summary in import_summaries), default=""
             ),
+            "preview_score": preview_score,
+            "preview_band": mobility.score_band(preview_score),
+            "latest_score": latest_score,
+            "latest_band": mobility.score_band(latest_score),
+            "score_series": score_series,
+            "score_chart": (
+                charts.line_chart(
+                    score_series,
+                    width=SCORE_CHART_WIDTH,
+                    height=SCORE_CHART_HEIGHT,
+                    y_min=0,
+                    y_max=100,
+                )
+                if score_series
+                else None
+            ),
+            "score_trend_note": charts.trend_note(score_series) if score_series else "",
+            "score_history": [
+                {"recorded_on": row["recorded_on"], "score": row["score"]}
+                for row in history
+                if row["score"] is not None
+            ],
         },
     )
 

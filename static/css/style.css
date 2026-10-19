@@ -2249,6 +2249,163 @@ a:hover { color: var(--accent); text-decoration: underline; }
 
 .chart__cta a:hover { text-decoration: underline; }
 
+/* --------------------------------------------------------- chart zoom + hover */
+
+/* The figure is the positioning anchor for the floating hover readout. */
+.chart {
+  position: relative;
+}
+
+.chart__controls {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.chart__control {
+  min-width: 34px;
+  height: 30px;
+  padding: 0 10px;
+  font-family: var(--mono);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--text);
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.chart__control:hover {
+  background: var(--bg-sunken);
+  border-color: var(--border-strong);
+}
+
+.chart__control:focus-visible {
+  outline: 2px solid var(--sapphire);
+  outline-offset: 2px;
+}
+
+.chart__svg[data-zoomable] {
+  cursor: grab;
+  touch-action: none;
+}
+
+.chart__svg.is-panning { cursor: grabbing; }
+
+.chart__tooltip {
+  position: absolute;
+  z-index: 5;
+  transform: translateX(-50%);
+  padding: 6px 10px;
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--on-accent, #fffdf8);
+  background: var(--text);
+  border-radius: 6px;
+  pointer-events: none;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 22%);
+}
+
+/* --------------------------------------------------------------- score panel */
+
+.score-summary {
+  margin: 6px 0 18px;
+}
+
+.score-summary__value {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+}
+
+.score-summary__number {
+  font-size: clamp(2.4rem, 1.6rem + 3vw, 3.6rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--emerald);
+}
+
+.score-summary__scale {
+  font-family: var(--mono);
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.score-summary__band {
+  margin: 8px 0 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.score-summary__summary {
+  margin: 4px 0 0;
+  max-width: var(--measure, 70ch);
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.score-summary__date {
+  margin: 6px 0 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.score-preview {
+  margin: 4px 0 16px;
+  padding: 16px;
+  background: var(--bg-sunken);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.score-preview__label {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.score-preview__value {
+  margin: 6px 0 0;
+  font-size: clamp(2rem, 1.4rem + 2vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1;
+  color: var(--emerald);
+}
+
+.score-preview__scale {
+  font-family: var(--mono);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.score-preview__band {
+  margin: 6px 0 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.score-preview__note {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.score-value {
+  font-weight: 700;
+  color: var(--emerald);
+}
+
 .chart-empty {
   margin: 24px 0 0;
   padding: 22px 18px;

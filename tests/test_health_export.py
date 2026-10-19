@@ -432,6 +432,7 @@ def main() -> int:
         check("import reports the metrics found", "12" in good.text or "Imported" in good.text)
         check("imported values shown in display units", "3.0 mph" in good.text and "28.3 in" in good.text)
         check("import does not silently save", len(db.get_mobility_readings(user_id)) == 0)
+        check("import shows the computed score", "score-preview__value" in good.text)
 
         saved = client.post(
             "/mobility",

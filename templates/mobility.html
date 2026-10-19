@@ -87,6 +87,19 @@
     </tbody>
   </table>
 
+  {% if preview_score is not none %}
+    <div class="score-preview">
+      <p class="score-preview__label">Mobility Score from these readings</p>
+      <p class="score-preview__value">{{ preview_score }} <span class="score-preview__scale">/ 100</span></p>
+      {% if preview_band %}
+        <p class="score-preview__band">{{ preview_band.label }}</p>
+      {% endif %}
+      <p class="score-preview__note">
+        Saving adds this score to your history, where you can follow it over time.
+      </p>
+    </div>
+  {% endif %}
+
   <form method="post" action="/mobility" class="import-save">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="recorded_on" value="{{ import_recorded_on }}">
@@ -95,6 +108,67 @@
     {% endfor %}
     <button type="submit" class="btn btn--primary">Save reading</button>
   </form>
+</section>
+{% endif %}
+
+{% if latest_score is not none %}
+<section class="panel panel--wide" aria-labelledby="score-heading">
+  <p class="eyebrow">Mobility score</p>
+  <h2 id="score-heading">Your Mobility Score</h2>
+
+  <div class="score-summary">
+    <p class="score-summary__value">
+      <span class="score-summary__number">{{ latest_score }}</span>
+      <span class="score-summary__scale">/ 100</span>
+    </p>
+    {% if latest_band %}
+      <p class="score-summary__band">{{ latest_band.label }}</p>
+      <p class="score-summary__summary">{{ latest_band.summary }}</p>
+    {% endif %}
+    {% if latest %}
+      <p class="score-summary__date">From the reading dated {{ latest.recorded_on }}.</p>
+    {% endif %}
+  </div>
+
+  {% if score_chart %}
+    <figure class="chart chart--score">
+      <figcaption class="chart__caption">
+        <span class="chart__title">Mobility score over time</span>
+        <span class="chart__range">{{ score_chart.x_first }}{% if score_chart.point_count > 1 %} to {{ score_chart.x_last }}{% endif %}</span>
+      </figcaption>
+      {{ chart_svg(score_chart, 'Line chart of your mobility score over time', zoomable=true, tooltip_prefix='Mobility score') }}
+      <p class="chart__note">
+        Hover a point to see its date and score. Use the controls to zoom in or out when
+        you have many readings. {{ score_trend_note }}
+      </p>
+    </figure>
+  {% else %}
+    <p class="section-note">Save a reading to start tracking your score over time.</p>
+  {% endif %}
+
+  {% if score_history %}
+    <h3>Score history</h3>
+    <table class="history-table history-table--scores">
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in score_history %}
+          <tr>
+            <td class="mono">{{ entry.recorded_on }}</td>
+            <td class="mono score-value">{{ entry.score }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="section-note">
+      Each saved reading keeps its own score, so you can see how your mobility changes from
+      day to day rather than a single number in isolation.
+    </p>
+  {% endif %}
 </section>
 {% endif %}
 
@@ -223,4 +297,8 @@
   or monitor any condition. Discuss any changes you notice with a qualified clinician.
 </p>
 </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="/static/js/chart.js?v={{ asset_version() }}" defer></script>
 {% endblock %}
