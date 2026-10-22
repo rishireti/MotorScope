@@ -10,7 +10,8 @@
 
     * the mouse wheel zooms in and out around the pointer, and the - / + / reset buttons
       do the same around the centre, until individual points separate,
-    * holding the mouse button down and dragging pans the graph under the cursor,
+    * holding the mouse button down and dragging pans the graph under the cursor while
+      zoomed in, never letting it slide out past the axes,
     * on charts carrying data-tooltip-prefix, hovering a point shows its date and value
       in a small floating readout instead of relying on the browser's native <title>.
 
@@ -24,7 +25,6 @@
   var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   var MAX_ZOOM = 10; // how many times closer than full size the view may get
   var ZOOM_STEP = 0.7; // scale multiplier when zooming out from a button
-  var PAN_MARGIN = 0.25; // how far past the edge of the data the window may wander
   var clipCounter = 0;
 
   // "2026-10-04" -> "4 Oct 2026", without letting the browser shift it a day for UTC.
@@ -208,10 +208,11 @@
       k = Math.min(Math.max(k, 1), MAX_ZOOM);
       var winW = innerW / k;
       var winH = innerH / k;
-      var marginX = innerW * PAN_MARGIN;
-      var marginY = innerH * PAN_MARGIN;
-      wx = Math.min(Math.max(wx, padL - marginX), plotRight - winW + marginX);
-      wy = Math.min(Math.max(wy, padT - marginY), plotBottom - winH + marginY);
+      // The window is pinned inside the plot rectangle, so the graph always fills
+      // the frame and can never slide out past the axes, however it is zoomed or
+      // dragged. At full size there is nothing to pan; drag once zoomed in.
+      wx = Math.min(Math.max(wx, padL), plotRight - winW);
+      wy = Math.min(Math.max(wy, padT), plotBottom - winH);
 
       var tx = padL - k * wx;
       var ty = padT - k * wy;
