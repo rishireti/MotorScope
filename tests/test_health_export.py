@@ -178,8 +178,12 @@ def main() -> int:
         health_export._convert("ground_contact_time", 0.24, "s") == 240.0,
     )
     check(
-        "percentages pass through",
-        health_export._convert("walking_steadiness", 82.5, "%") == 82.5,
+        "apple's percentage fractions become whole percents",
+        health_export._convert("walking_steadiness", 0.825, "%") == 82.5,
+    )
+    check(
+        "double support follows the fraction format seen in a real export",
+        abs(health_export._convert("double_support_time", 0.3213, "%") - 32.13) < 1e-9,
     )
     check(
         "speeds pass through",
@@ -224,9 +228,9 @@ def main() -> int:
             record("HKQuantityTypeIdentifierWalkingSpeed", "1.40", "m/s", "2026-10-04", "18:00:00"),
             # Steppish metrics needing unit conversion.
             record("HKQuantityTypeIdentifierWalkingStepLength", "0.72", "m", "2026-10-04", "08:00:00"),
-            record("HKQuantityTypeIdentifierWalkingAsymmetryPercentage", "9.5", "%", "2026-10-04", "08:00:00"),
-            record("HKQuantityTypeIdentifierWalkingDoubleSupportPercentage", "31.0", "%", "2026-10-04", "08:00:00"),
-            record("HKQuantityTypeIdentifierAppleWalkingSteadiness", "84.0", "%", "2026-10-04", "08:00:00"),
+            record("HKQuantityTypeIdentifierWalkingAsymmetryPercentage", "0.095", "%", "2026-10-04", "08:00:00"),
+            record("HKQuantityTypeIdentifierWalkingDoubleSupportPercentage", "0.31", "%", "2026-10-04", "08:00:00"),
+            record("HKQuantityTypeIdentifierAppleWalkingSteadiness", "0.84", "%", "2026-10-04", "08:00:00"),
             # Running metrics.
             record("HKQuantityTypeIdentifierRunningStrideLength", "1.24", "m", "2026-10-03", "07:00:00"),
             record("HKQuantityTypeIdentifierRunningGroundContactTime", "0.25", "s", "2026-10-03", "07:00:00"),
@@ -250,6 +254,7 @@ def main() -> int:
         str(result.values.get("walking_speed")),
     )
     check("step length converted to cm", result.values["step_length"] == 72.0)
+    check("asymmetry fraction read as a percentage", result.values["walking_asymmetry"] == 9.5)
     check("double support kept as percent", result.values["double_support_time"] == 31.0)
     check("walking steadiness found", result.values["walking_steadiness"] == 84.0)
     check("stride length converted to cm", result.values["running_stride_length"] == 124.0)

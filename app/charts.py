@@ -17,7 +17,7 @@ which draws the latest reading on the left.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from math import isfinite
 
 from markupsafe import Markup
@@ -221,7 +221,18 @@ def line_chart(
         "height": height,
         "baseline": baseline,
         "pad_left": pad_left,
+        "pad_top": pad_top,
         "inner_w": inner_w,
+        "inner_h": inner_h,
+        # Geometry and axis data a browser needs to rescale the chart when zoomed.
+        "low": low,
+        "high": high,
+        "decimals": decimals,
+        "unit": unit,
+        # The first instant encoded as milliseconds with its wall clock treated as UTC,
+        # so the browser can format axis dates that match these labels in any timezone.
+        "t0_ms": int(series[0].when.replace(tzinfo=timezone.utc).timestamp() * 1000),
+        "span_seconds": span_seconds,
         "grid": grid,
         "dots": dots,
         "line_points": Markup(line_points),

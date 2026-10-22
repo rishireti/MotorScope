@@ -65,35 +65,52 @@
     role="img"
     aria-label="{{ aria_label }}"
     preserveAspectRatio="xMidYMid meet"
-    {% if zoomable %}data-zoomable{% endif %}
+    {% if zoomable %}
+      data-zoomable
+      data-pad-left="{{ chart.pad_left }}"
+      data-pad-top="{{ chart.pad_top }}"
+      data-inner-w="{{ chart.inner_w }}"
+      data-inner-h="{{ chart.inner_h }}"
+      data-y-low="{{ chart.low }}"
+      data-y-high="{{ chart.high }}"
+      data-t0="{{ chart.t0_ms }}"
+      data-span="{{ chart.span_seconds }}"
+      data-decimals="{{ chart.decimals }}"
+      data-unit="{{ chart.unit }}"
+    {% endif %}
     {% if tooltip_prefix %}data-tooltip-prefix="{{ tooltip_prefix }}"{% endif %}
     {% if tooltip_unit %}data-tooltip-unit="{{ tooltip_unit }}"{% endif %}
   >
-    {% for line in chart.grid %}
-      <line class="chart__gridline" x1="{{ chart.pad_left }}" y1="{{ line.y }}"
-            x2="{{ chart.pad_left + chart.inner_w }}" y2="{{ line.y }}"></line>
-      <text class="chart__axis-label" x="{{ chart.pad_left - 8 }}" y="{{ line.y + 4 }}"
-            text-anchor="end">{{ line.label }}</text>
-    {% endfor %}
+    <g class="chart__frame">
+      {% for line in chart.grid %}
+        <line class="chart__gridline" x1="{{ chart.pad_left }}" y1="{{ line.y }}"
+              x2="{{ chart.pad_left + chart.inner_w }}" y2="{{ line.y }}"></line>
+        <text class="chart__axis-label chart__y-label" x="{{ chart.pad_left - 8 }}" y="{{ line.y + 4 }}"
+              text-anchor="end">{{ line.label }}</text>
+      {% endfor %}
+    </g>
 
-    <polygon class="chart__area" points="{{ chart.area_points }}"></polygon>
+    <g class="chart__data">
+      <polygon class="chart__area" points="{{ chart.area_points }}"></polygon>
+      {% if not chart.single %}
+        <polyline class="chart__line" points="{{ chart.line_points }}"></polyline>
+      {% endif %}
+    </g>
 
-    {% if not chart.single %}
-      <polyline class="chart__line" points="{{ chart.line_points }}"></polyline>
-    {% endif %}
+    <g class="chart__dots">
+      {% for dot in chart.dots %}
+        <circle class="chart__dot" cx="{{ dot.cx }}" cy="{{ dot.cy }}" r="3.5"
+                {% if dot.date %}data-date="{{ dot.date }}"{% endif %}
+                data-value="{{ dot.value }}">
+          <title>{{ dot.title }}</title>
+        </circle>
+      {% endfor %}
+    </g>
 
-    {% for dot in chart.dots %}
-      <circle class="chart__dot" cx="{{ dot.cx }}" cy="{{ dot.cy }}" r="3.5"
-              {% if dot.date %}data-date="{{ dot.date }}"{% endif %}
-              data-value="{{ dot.value }}">
-        <title>{{ dot.title }}</title>
-      </circle>
-    {% endfor %}
-
-    <text class="chart__axis-label" x="{{ chart.pad_left }}" y="{{ chart.height - 8 }}"
+    <text class="chart__axis-label chart__x-label" x="{{ chart.pad_left }}" y="{{ chart.height - 8 }}"
           text-anchor="start">{{ chart.x_first }}</text>
     {% if not chart.single %}
-      <text class="chart__axis-label" x="{{ chart.pad_left + chart.inner_w }}" y="{{ chart.height - 8 }}"
+      <text class="chart__axis-label chart__x-label" x="{{ chart.pad_left + chart.inner_w }}" y="{{ chart.height - 8 }}"
             text-anchor="end">{{ chart.x_last }}</text>
     {% endif %}
   </svg>

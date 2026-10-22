@@ -2217,6 +2217,8 @@ a:hover { color: var(--accent); text-decoration: underline; }
   stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
+  /* Zooming scales the geometry, not the weight of the line. */
+  vector-effect: non-scaling-stroke;
 }
 
 .chart__dot {
@@ -2289,7 +2291,12 @@ a:hover { color: var(--accent); text-decoration: underline; }
 
 .chart__svg[data-zoomable] {
   cursor: grab;
-  touch-action: none;
+  /* The frame is fixed: transformed data is clipped to it, never allowed outside. */
+  overflow: hidden;
+  /* Dragging pans the graph; it must not select axis text on the way. */
+  user-select: none;
+  /* Vertical swipes still scroll the page; horizontal drags pan the graph. */
+  touch-action: pan-y;
 }
 
 .chart__svg.is-panning { cursor: grabbing; }

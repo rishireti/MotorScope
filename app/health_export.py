@@ -86,12 +86,18 @@ HEALTHKIT_TYPES: dict[str, str] = {
 #: Accepted HealthKit units per metric, mapped to the factor that converts them into the
 #: unit the metric is displayed in. A sample in any other unit is skipped rather than
 #: guessed at, so a mis-read export cannot quietly skew a score.
+#:
+#: The three percentage types are scaled by 100 because Apple's export.xml writes them
+#: as fractions of 1 even though the unit says "%": across 63,949 double-support samples
+#: in a real export every value sat between 0.207 and 0.393, i.e. 20.7-39.3%. Storing
+#: them raw would file them far below their expected band and clamp every sub-score to
+#: a perfect 100.
 UNIT_CONVERSIONS: dict[str, dict[str, float]] = {
     "walking_speed": {"m/s": 1.0, "meter/second": 1.0, "meters/second": 1.0},
     "step_length": {"m": 100.0, "cm": 1.0, "meter": 100.0, "meters": 100.0},
-    "walking_asymmetry": {"%": 1.0},
-    "double_support_time": {"%": 1.0},
-    "walking_steadiness": {"%": 1.0},
+    "walking_asymmetry": {"%": 100.0},
+    "double_support_time": {"%": 100.0},
+    "walking_steadiness": {"%": 100.0},
     "six_minute_walk": {"m": 1.0, "meter": 1.0, "meters": 1.0},
     "stair_speed_up": {"m/s": 1.0, "meter/second": 1.0, "meters/second": 1.0},
     "stair_speed_down": {"m/s": 1.0, "meter/second": 1.0, "meters/second": 1.0},
