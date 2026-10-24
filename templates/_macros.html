@@ -53,31 +53,17 @@
   composite trend and every per-metric mini chart. The viewBox keeps it sharp and the
   `.chart__svg` rule lets it scale to the width of its container.
 
-  `zoomable` opts a chart into the pan/zoom controls added by chart.js (for the trend
-  charts, where a long history can pack the points too tightly to read). `tooltip_prefix`
-  and `tooltip_unit` label the custom hover readout that chart.js builds from each point's
-  `data-date` and `data-value`; the native `<title>` stays as a fallback without JS.
+  `tooltip_prefix` and `tooltip_unit` label the custom hover readout that chart.js builds
+  from each point's `data-date` and `data-value`; the native `<title>` stays as a fallback
+  without JS.
 #}
-{% macro chart_svg(chart, aria_label='Trend over time', class_name='', zoomable=false, tooltip_prefix='', tooltip_unit='') %}
+{% macro chart_svg(chart, aria_label='Trend over time', class_name='', tooltip_prefix='', tooltip_unit='') %}
   <svg
     class="chart__svg{% if class_name %} {{ class_name }}{% endif %}"
     viewBox="0 0 {{ chart.width }} {{ chart.height }}"
     role="img"
     aria-label="{{ aria_label }}"
     preserveAspectRatio="xMidYMid meet"
-    {% if zoomable %}
-      data-zoomable
-      data-pad-left="{{ chart.pad_left }}"
-      data-pad-top="{{ chart.pad_top }}"
-      data-inner-w="{{ chart.inner_w }}"
-      data-inner-h="{{ chart.inner_h }}"
-      data-y-low="{{ chart.low }}"
-      data-y-high="{{ chart.high }}"
-      data-t0="{{ chart.t0_ms }}"
-      data-span="{{ chart.span_seconds }}"
-      data-decimals="{{ chart.decimals }}"
-      data-unit="{{ chart.unit }}"
-    {% endif %}
     {% if tooltip_prefix %}data-tooltip-prefix="{{ tooltip_prefix }}"{% endif %}
     {% if tooltip_unit %}data-tooltip-unit="{{ tooltip_unit }}"{% endif %}
   >

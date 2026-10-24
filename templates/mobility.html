@@ -136,7 +136,7 @@
         <span class="chart__title">Mobility score over time</span>
         <span class="chart__range">{{ score_chart.x_first }}{% if score_chart.point_count > 1 %} to {{ score_chart.x_last }}{% endif %}</span>
       </figcaption>
-      {{ chart_svg(score_chart, 'Line chart of your mobility score over time', zoomable=true, tooltip_prefix='Mobility score') }}
+      {{ chart_svg(score_chart, 'Line chart of your mobility score over time', tooltip_prefix='Mobility score') }}
       <p class="chart__note">
         Hover a point to see its date and score. Use the controls to zoom in or out when
         you have many readings. {{ score_trend_note }}

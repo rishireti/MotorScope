@@ -162,6 +162,7 @@ def line_chart(
 
     inner_w = max(width - pad_left - pad_right, 1)
     inner_h = max(height - pad_top - pad_bottom, 1)
+    dot_radius = 3.5
 
     baseline = pad_top + inner_h
     elapsed = [(p.when - series[0].when).total_seconds() for p in series]
@@ -176,12 +177,15 @@ def line_chart(
 
     def y_for(value: float) -> float:
         ratio = (value - low) / (high - low)
-        # Values beyond a pinned axis are pinned to the edge rather than escaping it.
         y = pad_top + inner_h * (1.0 - ratio)
-        return max(pad_top, min(baseline, y))
+        # Keep the whole marker visible when a pinned value lands on an axis boundary.
+        return max(pad_top + dot_radius, min(baseline - dot_radius, y))
+
+    def x_for_dot(x: float) -> float:
+        return max(pad_left + dot_radius, min(pad_left + inner_w - dot_radius, x))
 
     coords = [
-        (x_for(index, offset), y_for(point.value))
+        (x_for_dot(x_for(index, offset)), y_for(point.value))
         for index, (point, offset) in enumerate(zip(series, elapsed))
     ]
 

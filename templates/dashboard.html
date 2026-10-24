@@ -58,7 +58,7 @@
           <span class="chart__range">{{ score_chart.x_first }}{% if score_chart.point_count > 1 %} to {{ score_chart.x_last }}{% endif %}</span>
         </figcaption>
 
-        {{ chart_svg(score_chart, 'Line chart of your mobility trend from ' ~ score_chart.x_first ~ ' to ' ~ score_chart.x_last, zoomable=true, tooltip_prefix='Mobility score') }}
+        {{ chart_svg(score_chart, 'Line chart of your mobility trend from ' ~ score_chart.x_first ~ ' to ' ~ score_chart.x_last, tooltip_prefix='Mobility score') }}
 
         <p class="chart__note">
           Each point is one saved reading. Gaps in the line mean no readings were recorded in

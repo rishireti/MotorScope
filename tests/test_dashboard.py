@@ -200,6 +200,7 @@ def main() -> int:
     outlying = charts.line_chart(series_of([("2026-01-01", 50.0), ("2026-02-01", 5000.0)]), y_min=0, y_max=100)
     ys = [float(dot["cy"]) for dot in outlying["dots"]]
     check("outlier stays inside the plot", all(0 <= y <= outlying["height"] for y in ys))
+    check("outlier marker is fully visible", ys[-1] >= outlying["pad_top"] + 3.5)
 
     print("\nTrend wording")
     check("no trend without data", charts.trend_note([]) == "")
@@ -290,18 +291,18 @@ def main() -> int:
         print("\nChart markup safety")
         check("svg carries a role", 'role="img"' in body)
         check("svg has an aria-label", "aria-label=" in body)
-        # The page ships an external script for zoom/hover; what must never appear is an
+        # The page ships an external script for hover readouts; what must never appear is an
         # inline <script> without a src, which is the shape an injected payload takes.
         check("no inline script injected", re.search(r"<script(?![^>]*\bsrc=)", body, re.I) is None)
 
-        print("\nChart zoom and hover readout")
-        check("score chart is zoomable", "data-zoomable" in body)
+        print("\nStatic chart and hover readout")
+        check("score chart has no zoom controls", "data-zoomable" not in body)
         check("chart.js loaded", "/static/js/chart.js" in body)
         check("chart.js served", client.get("/static/js/chart.js").status_code == 200)
         check("points carry hover data", "data-value=" in body and "data-date=" in body)
         check("tooltip labelled with the score", 'data-tooltip-prefix="Mobility score"' in body)
         chart_script = client.get("/static/js/chart.js").text
-        check("plot and points share the plot clip", "dotsGroup.setAttribute" in chart_script)
+        check("chart script has no zoom behavior", "makeZoomable" not in chart_script and "addEventListener(\"wheel\"" not in chart_script)
 
         print("\nUsers only see their own trend")
         client.cookies.clear()
