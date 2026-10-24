@@ -103,6 +103,7 @@
     var plotBottom = padT + innerH;
 
     var dataGroup = svg.querySelector(".chart__data");
+    var dotsGroup = svg.querySelector(".chart__dots");
     var frameGroup = svg.querySelector(".chart__frame");
     var frameHTML = frameGroup ? frameGroup.innerHTML : "";
     var xLabels = Array.prototype.slice.call(svg.querySelectorAll(".chart__x-label"));
@@ -131,6 +132,7 @@
     defs.appendChild(clip);
     svg.insertBefore(defs, svg.firstChild);
     if (dataGroup) dataGroup.setAttribute("clip-path", "url(#" + clipId + ")");
+    if (dotsGroup) dotsGroup.setAttribute("clip-path", "url(#" + clipId + ")");
 
     // The visible window, expressed in the chart's own coordinates. At k = 1 the
     // window is the whole plot rectangle and nothing is transformed.

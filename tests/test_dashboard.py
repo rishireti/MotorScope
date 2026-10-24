@@ -300,6 +300,8 @@ def main() -> int:
         check("chart.js served", client.get("/static/js/chart.js").status_code == 200)
         check("points carry hover data", "data-value=" in body and "data-date=" in body)
         check("tooltip labelled with the score", 'data-tooltip-prefix="Mobility score"' in body)
+        chart_script = client.get("/static/js/chart.js").text
+        check("plot and points share the plot clip", "dotsGroup.setAttribute" in chart_script)
 
         print("\nUsers only see their own trend")
         client.cookies.clear()
